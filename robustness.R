@@ -74,8 +74,11 @@ grid <- list(
   list("quad", "correct", TRUE,  "C", "cv",    "C-slope drift, Mahalanobis"),
   list("max",  "correct", TRUE,  "C", "cv",    "C-slope drift, max (trap)"))
 
+cat(sprintf("robustness.R  nsim=%d  Bboot=%d  Delta=%d  ncore=%d  -- %d settings, live progress below:\n",
+            nsim, Bboot, Delta, ncore, length(grid))); flush(stdout())
 t0 <- Sys.time(); rows <- list()
-for (cf in grid) {
+for (gi in seq_along(grid)) {
+  cf <- grid[[gi]]
   shape <- cf[[1]]; model <- cf[[2]]; weighted <- cf[[3]]; pattern <- cf[[4]]; calib <- cf[[5]]; lab <- cf[[6]]
   res <- parallel::mclapply(seq_len(nsim), function(r) one_rep(r, shape, model, weighted, pattern, calib), mc.cores = ncore)
   res <- res[vapply(res, function(x) is.list(x) && length(x$th) == 3, TRUE)]
@@ -89,6 +92,10 @@ for (cf in grid) {
     typeI = round(mean(RN[,m]), 3), power = round(mean(RE[,m]), 3),
     detection = if (m=="scr") round(det,3) else if (m=="oracle") 1 else NA,
     false_excl = if (m=="scr") round(fer,3) else NA)
+  cat(sprintf("[%d/%d] %-28s bias=%+.3f rmse=%.3f typeI=%.3f power=%.3f det=%.3f FER=%.3f  (%.0fs elapsed)\n",
+      gi, length(grid), lab, mean(TH[,"scr"]) - tau0, sqrt(mean((TH[,"scr"] - tau0)^2)),
+      mean(RN[,"scr"]), mean(RE[,"scr"]), det, fer,
+      as.numeric(difftime(Sys.time(), t0, "secs")))); flush(stdout())
 }
 out <- do.call(rbind, rows); write.csv(out, "robustness_results.csv", row.names = FALSE)
 scr <- out[out$method == "scr", c("setting","bias","rmse","typeI","power","detection","false_excl")]

@@ -94,6 +94,7 @@ one_rep <- function(r) {
        nd = sum(de$B == 1), nf = sum(de$B == 0))
 }
 
+cat(sprintf("reference_cell.R  nsim=%d  Bboot=%d  ncore=%d  -- running (one table printed when done)...\n", nsim, Bboot, ncore)); flush(stdout())
 t0 <- Sys.time()
 res <- parallel::mclapply(seq_len(nsim), one_rep, mc.cores = ncore)
 ok <- !vapply(res, is.null, TRUE) & vapply(res, function(x) !inherits(x, "try-error"), TRUE)
