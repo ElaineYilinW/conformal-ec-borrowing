@@ -1,0 +1,210 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.78in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype}
+\usepackage{amsmath,amssymb,bm,booktabs,array,tabularx}
+\usepackage{xcolor,graphicx,tikz,enumitem,caption,fancyhdr}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,decorations.pathreplacing}
+\usepackage[hidelinks]{hyperref}
+\input{visual_style.tex}
+
+\newcommand{\R}{\mathrm{R}}
+\newcommand{\E}{\mathrm{E}}
+\newcommand{\Exp}{\mathbb{E}}
+\newcommand{\ind}{\mathbb{1}}
+\newcommand{\fullfig}[1]{\resizebox{\linewidth}{!}{\input{../figures/#1}}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.48em}
+\setlist[itemize]{leftmargin=1.45em,itemsep=0.18em,topsep=0.2em}
+\setlist[enumerate]{leftmargin=1.55em,itemsep=0.22em,topsep=0.2em}
+\renewcommand{\arraystretch}{1.16}
+\captionsetup{font=small,labelfont=bf}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{midgray}{Selective borrowing of longitudinal external controls}}
+\fancyhead[R]{\small\textcolor{midgray}{Illustrated concise blueprint}}
+\fancyfoot[C]{\textcolor{midgray}{\thepage}}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\title{\vspace{-3em}\textbf{Safe selective borrowing of external controls}\\[0.35em]
+\large Covariate-shift-adjusted longitudinal residual-rank screening\\[0.6em]
+\normalsize\textcolor{blue}{Illustrated concise blueprint --- new version}}
+\author{}
+\date{July 2026}
+
+\begin{document}
+\maketitle
+\vspace{-2.2em}
+
+\begin{center}
+\begin{minipage}{0.94\linewidth}
+\small
+\textbf{The problem.} A small randomized trial can gain precision from a larger registry or historical control arm, but borrowing incompatible patients can create severe bias.\\[2pt]
+\textbf{The proposal.} Use randomized controls to learn what an ordinary control trajectory looks like, rank each external patient's covariate-adjusted longitudinal residual score against that reference, retain only compatible-looking external controls, and then refit a transported AIPW estimator.\\[2pt]
+\textbf{The result so far.} In a prespecified simulation reference cell, the symmetric adaptive screen is unbiased, controls type-I error, improves RMSE and power over RCT-only, and approaches an unattainable oracle screen. The gain is useful but modest: this is insurance against harmful borrowing, not a free precision gain.
+\end{minipage}
+\end{center}
+
+\begin{figure}[!h]
+\centering\fullfig{problem_landscape.tex}
+\caption{The hybrid-control decision. External data are valuable only to the extent that they can safely inform the randomized control mean.}
+\end{figure}
+
+\begin{takeaway}
+The treated arm is never replaced by external data. The method supplements only the untreated mean, and only after subject-level compatibility screening.
+\end{takeaway}
+
+\clearpage
+\section{The idea without jargon}
+
+Each patient contributes a sequence of outcomes, not a single number. A working model fitted to randomized controls describes the expected untreated course at that patient's baseline covariates. Subtracting the expected course produces a residual trajectory. A prespecified clinical contrast then reduces the residual trajectory to one score: for example, average response, final-minus-baseline change, or a broader whole-trajectory discrepancy.
+
+The score is not judged against a universal cutoff such as ``two standard deviations.'' It is ranked against actual out-of-fold randomized-control scores. A small conformal tail probability means that few randomized controls look at least as unusual as that external patient.
+
+\begin{figure}[!h]
+\centering\fullfig{score_pipeline.tex}
+\caption{From a longitudinal record to a borrowing decision. The model supplies an ordering; randomized controls supply the empirical calibration.}
+\end{figure}
+
+For a contrast $c$, the default signed score is
+\[
+V=\frac{c^\top\{\bm Y-\widehat m(X)\}}
+        {\{c^\top\widehat\Sigma_{\R}(X)c\}^{1/2}}.
+\]
+The actual default screen ranks $|V|$, because equal treatment of the two tails is essential for bias control.
+
+\begin{takeaway}
+The working outcome model need not be exactly true for compatible subjects to share a score distribution: shared model error appears in both randomized and compatible external controls. Better models still improve separation and therefore detection power.
+\end{takeaway}
+
+\clearpage
+\section{Why ordinary ranks are not enough}
+
+Compatible external controls need not have the same baseline-covariate mix as randomized controls. In the toy design, severe disease occurs in 30\% of randomized controls but 70\% of external controls. If severe patients also have more variable residuals, an unweighted randomized-control score distribution contains too few high-variance severe patients. It can wrongly label compatible external patients as unusual.
+
+\begin{figure}[!h]
+\centering\fullfig{covariate_shift.tex}
+\caption{Covariate-shift calibration changes the mass attached to randomized-control scores so their mixture represents compatible external controls. It does not alter the individual score values.}
+\end{figure}
+
+With $\omega_0(x)=f_{\E,0}(x)/f_\R(x)$, the upper-tail weighted rank of external subject $j$ is
+\[
+\widehat p^{,w}_j=
+\frac{\omega_0(X_j)+\sum_i\omega_0(X_i)\ind\{V_i^\R\ge V_j^\E\}}
+     {\omega_0(X_j)+\sum_i\omega_0(X_i)}.
+\]
+The self-mass in the numerator makes the construction conservative. Cross-fitting supplies out-of-fold randomized scores and fold-specific external scores, allowing every scarce randomized control to contribute to calibration.
+
+\begin{takeaway}
+Weighting repairs a difference in covariate mix, not an incompatible outcome law. The relevant ratio concerns compatible ECs; if incompatibility depends on $X$, that ratio is latent and remains an open problem.
+\end{takeaway}
+
+\clearpage
+\section{Why the screen is symmetric}
+
+A directional screen seems attractive: when contamination shifts outcomes upward, delete only unusually high residuals. But the same rule also removes the high tail of clean external controls. The retained clean control mean moves downward, so treated minus control moves upward. This is outcome-dependent selection bias, and its apparent power can be a type-I error artifact.
+
+\begin{figure}[!h]
+\centering\fullfig{symmetry_bias.tex}
+\caption{The key bias mechanism. Symmetric trimming preserves the center of a symmetric clean score distribution; a one-sided cut moves it.}
+\end{figure}
+
+The default therefore screens on $|V|$ using one threshold $\gamma$. The threshold is chosen per dataset from a small grid by minimizing a label-free estimated MSE:
+\[
+\max\!\left[
+\{\widehat\tau(\gamma)-\widehat\tau_{\rm RCT}\}^2
+-\widehat{\mathrm{Var}}^*\{\widehat\tau(\gamma)-\widehat\tau_{\rm RCT}\},0
+\right]
++\widehat{\mathrm{Var}}^*\{\widehat\tau(\gamma)\}.
+\]
+The randomized estimate is the bias anchor; paired bootstrap variation is subtracted so noise in the difference is not mistaken for squared bias.
+
+\begin{takeaway}
+Symmetry is a deliberate bias-control choice. It sacrifices some sensitivity to one-directional drift in exchange for an unbiased retained clean mean.
+\end{takeaway}
+
+\clearpage
+\section{The complete procedure}
+
+The method has a screening stage and an estimation stage. They must not be collapsed into one calculation. Screening makes randomized controls resemble the compatible external covariate mix. Estimation then moves retained external controls in the opposite direction, back to the randomized-trial population.
+
+\begin{figure}[!h]
+\centering\fullfig{screen_refit_workflow.tex}
+\caption{End-to-end workflow. The two density ratios have opposite directions and different purposes.}
+\end{figure}
+
+After screening, refit the retained-source density, control outcome model, residual variance, and inverse-variance borrowing weight. For $Z=c^\top\bm Y$, the treatment-effect estimator is
+\[
+\widehat\tau=\widehat\mu_1^\R-
+\left\{(1-\lambda_\gamma)\widehat\mu_0^\R
++\lambda_\gamma\widehat\mu_{0,\gamma}^{\E,\mathrm{DR}}\right\}.
+\]
+Here $\widehat\mu_{0,\gamma}^{\E,\mathrm{DR}}$ transports retained ECs to the RCT covariate distribution with $\rho_\gamma(x)=f_\R(x)/f_{\E,\gamma}(x)$, and $\lambda_\gamma$ borrows less when the retained EC estimate is noisy.
+
+\begin{enumerate}
+\item Prespecify the estimand, covariates, visit windows, and primary score.
+\item Check baseline support; outcome screening cannot rescue non-overlap.
+\item Cross-fit the longitudinal mean/scale model on randomized controls.
+\item Compute weighted ranks and retain ECs with $p^w>\gamma$.
+\item Refit every estimation nuisance component on the retained sample.
+\item Transport, combine control estimates, and repeat the whole pipeline for uncertainty assessment.
+\end{enumerate}
+
+\clearpage
+\section{What the current simulation shows}
+
+The primary reference cell has 120 randomized treated patients, 60 randomized controls, 200 ECs, 30\% contamination, a detectable global drift, a visit-average estimand, weighted five-fold CV+ calibration, and a correctly specified working model. The oracle knows the unobserved contamination labels and is therefore an unattainable ceiling.
+
+\begin{figure}[!h]
+\centering\fullfig{results_dashboard.tex}
+\caption{Four decision criteria in the reference cell. A check means the method satisfies the row's stated gate; the printed number is the observed metric.}
+\end{figure}
+
+\begin{center}
+\begin{tabularx}{0.96\linewidth}{>{\bfseries}p{0.25\linewidth}X}
+\toprule
+Finding & Interpretation \\
+\midrule
+Full EC borrowing fails & Bias $-0.42$ and type-I error $0.42$ show that precision without compatibility is unsafe.\\
+Sym-ada clears all gates & Bias $0.00$, RMSE $0.18$, type-I $0.06$, and power $0.73$ versus RCT-only RMSE $0.20$ and power $0.64$.\\
+One-sided power is misleading & Non-symmetric adaptive screening reaches power $0.84$ but also bias $+0.05$ and type-I $0.08$.\\
+The ceiling is modest & Even the oracle reaches RMSE $0.17$ and power $0.75$: the treated arm cannot be borrowed.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+These are reference-cell results, not a universal dominance claim. Stress tests indicate robustness to severe working-model misspecification and a gain from CV+ over a one-time split, while also showing that the score must match the shape of the drift.
+
+\clearpage
+\section{How to interpret and present the method}
+
+\textbf{What can be said now}
+\begin{itemize}
+\item Baseline overlap and outcome compatibility are different requirements.
+\item Weighted ranks can calibrate compatible external scores under covariate shift when the compatible-external density ratio is known or adequately estimated.
+\item An estimand-aligned longitudinal score can focus the screen on discrepancies that threaten the target contrast.
+\item Symmetric adaptive screening performed well in the stated reference cell and avoided the one-sided selection-bias trap.
+\end{itemize}
+
+\textbf{What must not be claimed}
+\begin{itemize}
+\item Passing one scalar-score screen does not prove causal exchangeability or equality of full longitudinal outcome laws.
+\item A subject-level screen need not detect a small shift shared by every EC.
+\item Exact finite-sample validity of the practical weighted CV+ statistic and post-selection inference for adaptive $\gamma$ are not yet established.
+\item The reference-cell advantage has not yet been fully mapped across all drift shapes, contamination fractions, and realistic covariate-driven designs.
+\end{itemize}
+
+\begin{takeaway}
+The right positioning is \textbf{insurance, not a free lunch}: remove identifiable incompatibility, preserve valid inference, and recover a modest precision gain when randomized controls are scarce.
+\end{takeaway}
+
+\section*{Selected references}
+\small
+\begin{enumerate}[leftmargin=1.7em,itemsep=0.12em]
+\item Zhu, Yang, and Wang (2025). Conformal selective borrowing for hybrid controlled trials. \emph{ICML}.
+\item Tibshirani, Barber, Cand\`es, and Ramdas (2019). Conformal prediction under covariate shift. \emph{NeurIPS}.
+\item Jin and Cand\`es (2026). Model-free selective inference under covariate shift via weighted conformal p-values. \emph{Biometrika}.
+\item Zhou, Zhu, Drake, and Pang (2025). Incorporating external controls in randomized trials with longitudinal outcomes. \emph{JRSS-A}.
+\end{enumerate}
+
+\end{document}

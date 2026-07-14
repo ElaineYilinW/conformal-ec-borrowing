@@ -1,0 +1,13 @@
+\begin{tikzpicture}[font=\small, x=1cm, y=1cm]
+  \node[titlelabel,anchor=west] at (0,4.35) {Simulation program: isolate one mechanism at a time};
+  \node[rctbox,text width=2.55cm] (d1) at (1.65,2.85) {DGP 1\\binary $X$, heteroscedastic\\\scriptsize analytic reference};
+  \node[stage,text width=2.55cm] (d2) at (5.45,2.85) {DGP 2\\binary $X$, homoscedastic\\\scriptsize isolates variance mechanism};
+  \node[extbox,text width=2.75cm] (d3) at (9.45,2.85) {DGP 3\\binary + continuous $X$\\\scriptsize general ratio + AIPW};
+  \draw[flow] (d1)--(d2); \draw[flow] (d2)--(d3);
+
+  \node[stage,text width=2.05cm] at (1.35,.35) {screen\\\scriptsize score, covariance, weight, split/CV+};
+  \node[stage,text width=2.05cm] at (4.15,.35) {stress\\\scriptsize model quality, drift shape, $\Delta$, $\pi_B$};
+  \node[stage,text width=2.05cm] at (6.95,.35) {estimate\\\scriptsize bias, RMSE, type-I, power, coverage};
+  \node[warnbox,text width=2.25cm] at (9.95,.35) {claim boundary\\\scriptsize evidence remains reference-cell-centered};
+  \node[smalllabel,anchor=west] at (0,-1.15) {Open: $X$-dependent contamination, nested selection inference, soft borrowing, and plasmode validation.};
+\end{tikzpicture}

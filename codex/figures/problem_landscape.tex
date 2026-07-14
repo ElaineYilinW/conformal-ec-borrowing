@@ -1,0 +1,23 @@
+\begin{tikzpicture}[font=\small, x=1cm, y=1cm]
+  \node[smalllabel,font=\tiny\bfseries,text=navy] at (1.35,2.70) {CHOICE};
+  \node[smalllabel,font=\tiny\bfseries,text=navy] at (5.05,2.70) {CONTROL DATA};
+  \node[smalllabel,font=\tiny\bfseries,text=navy] at (9.65,2.70) {CONSEQUENCE};
+
+  \node[rctbox,text width=2.1cm] (rct) at (1.35,1.85) {RCT only};
+  \node[stage,text width=3.15cm] (rctin) at (5.05,1.85) {randomized controls only};
+  \node[warnbox,text width=3.05cm] (rctout) at (9.65,1.85) {safe baseline; may be imprecise};
+
+  \node[badbox,text width=2.1cm] (full) at (1.35,0.25) {borrow all};
+  \node[stage,text width=3.15cm] (fullin) at (5.05,0.25) {randomized controls + all ECs};
+  \node[badbox,text width=3.05cm] (fullout) at (9.65,0.25) {more data, but severe bias if some ECs are incompatible};
+
+  \node[keepbox,text width=2.1cm] (sel) at (1.35,-1.50) {borrow selectively};
+  \node[stage,text width=3.15cm] (selin) at (5.05,-1.50) {randomized controls + retained ECs};
+  \node[keepbox,text width=3.05cm] (selout) at (9.65,-1.50) {screen, refit, transport; aim for safety + modest precision};
+
+  \draw[flow] (rct)--(rctin); \draw[flow] (rctin)--(rctout);
+  \draw[flow] (full)--(fullin); \draw[flow] (fullin)--(fullout);
+  \draw[flow,draw=teal] (sel)--(selin); \draw[flow,draw=teal] (selin)--(selout);
+
+  \node[smalllabel,anchor=west] at (0,-2.30) {Randomized treated patients always estimate the treated mean; external data can supplement only the control mean.};
+\end{tikzpicture}

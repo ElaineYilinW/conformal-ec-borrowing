@@ -1,0 +1,21 @@
+\begin{tikzpicture}[font=\small, x=1cm, y=1cm]
+  \node[titlelabel] at (2.65,2.55) {Symmetric screen: the default};
+  \draw[->,draw=midgray] (0.1,0.7) -- (5.2,0.7) node[right,smalllabel] {signed score $V$};
+  \draw[draw=navy,line width=1pt]
+    plot[smooth] coordinates {(.25,.72)(.75,.80)(1.25,1.08)(1.75,1.65)(2.25,2.15)(2.65,2.32)(3.05,2.15)(3.55,1.65)(4.05,1.08)(4.55,.80)(5.0,.72)};
+  \fill[mint,opacity=.75] (1.25,.70) rectangle (4.05,2.22);
+  \draw[dashed,draw=teal] (1.25,.65)--(1.25,2.25) (4.05,.65)--(4.05,2.25);
+  \node[smalllabel,text=teal] at (2.65,0.34) {retain $|V|\le q$: clean mean stays centered};
+  \node[tinylabel,text=red] at (.72,1.05) {drop};
+  \node[tinylabel,text=red] at (4.58,1.05) {drop};
+
+  \node[titlelabel] at (8.9,2.55) {One-sided screen: orientation bias};
+  \draw[->,draw=midgray] (6.35,0.7) -- (11.45,0.7) node[right,smalllabel] {signed score $V$};
+  \draw[draw=navy,line width=1pt]
+    plot[smooth] coordinates {(6.5,.72)(7.0,.80)(7.5,1.08)(8.0,1.65)(8.5,2.15)(8.9,2.32)(9.3,2.15)(9.8,1.65)(10.3,1.08)(10.8,.80)(11.25,.72)};
+  \fill[mint,opacity=.75] (6.5,.70) rectangle (9.85,2.22);
+  \draw[dashed,draw=red] (9.85,.65)--(9.85,2.25);
+  \draw[flow,draw=red] (8.9,2.42) -- (8.25,2.42);
+  \node[tinylabel,text=red,anchor=west] at (9.98,1.25) {clean high tail\\removed};
+  \node[smalllabel,text=red] at (8.9,0.34) {retained control mean shifts down $\Rightarrow\ \widehat\tau$ shifts up};
+\end{tikzpicture}

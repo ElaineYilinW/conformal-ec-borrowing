@@ -1,0 +1,48 @@
+\begin{tikzpicture}[font=\small, x=1cm, y=1cm]
+  \node[titlelabel,anchor=west] at (0,3.35) {Reference cell: the attainable default is the only screen that clears all four gates};
+  \node[smalllabel,anchor=west] at (0,3.02) {$\pi_B=0.30$, global drift, $\Delta=8$, visit-average estimand; 300 replicates, 500 bootstraps};
+
+  \node[smalllabel,anchor=east] at (2.25,2.35) {Bias $\approx0$};
+  \node[smalllabel,anchor=east] at (2.25,1.65) {RMSE $<0.20$};
+  \node[smalllabel,anchor=east] at (2.25,0.95) {Type-I $\le0.06$};
+  \node[smalllabel,anchor=east] at (2.25,0.25) {Power $>0.64$};
+
+  \foreach \x/\name in {3.35/RCT only,5.25/Full EC,7.15/sym-ada,9.05/nonsym-ada,10.95/Oracle}
+    \node[smalllabel] at (\x,-0.38) {\name};
+
+  % grid
+  \foreach \y in {0.25,0.95,1.65,2.35} \draw[draw=lightgray,line width=5.5pt] (2.65,\y)--(11.65,\y);
+
+  % RCT: bias,typeI pass, RMSE/power baseline not strict improvement
+  \node[text=teal,font=\large\bfseries] at (3.35,2.35) {$\checkmark$};
+  \node[text=midgray,font=\large] at (3.35,1.65) {$-$};
+  \node[text=teal,font=\large\bfseries] at (3.35,.95) {$\checkmark$};
+  \node[text=midgray,font=\large] at (3.35,.25) {$-$};
+  \node[tinylabel] at (3.35,2.02) {$-0.00$}; \node[tinylabel] at (3.35,1.32) {$0.20$};
+  \node[tinylabel] at (3.35,.62) {$0.06$}; \node[tinylabel] at (3.35,-.08) {$0.64$};
+
+  % full
+  \foreach \y in {0.25,0.95,1.65,2.35} \node[text=red,font=\large\bfseries] at (5.25,\y) {$\times$};
+  \node[tinylabel] at (5.25,2.02) {$-0.42$}; \node[tinylabel] at (5.25,1.32) {$0.49$};
+  \node[tinylabel] at (5.25,.62) {$0.42$}; \node[tinylabel] at (5.25,-.08) {$0.06$};
+
+  % sym-ada
+  \foreach \y in {0.25,0.95,1.65,2.35} \node[text=teal,font=\large\bfseries] at (7.15,\y) {$\checkmark$};
+  \node[tinylabel] at (7.15,2.02) {$0.00$}; \node[tinylabel] at (7.15,1.32) {$0.18$};
+  \node[tinylabel] at (7.15,.62) {$0.06$}; \node[tinylabel] at (7.15,-.08) {$0.73$};
+  \draw[draw=teal,rounded corners=2pt,line width=1pt] (6.35,-.25) rectangle (7.95,2.68);
+
+  % nonsym
+  \node[text=red,font=\large\bfseries] at (9.05,2.35) {$\times$};
+  \node[text=midgray,font=\large] at (9.05,1.65) {$-$};
+  \node[text=red,font=\large\bfseries] at (9.05,.95) {$\times$};
+  \node[text=teal,font=\large\bfseries] at (9.05,.25) {$\checkmark$};
+  \node[tinylabel] at (9.05,2.02) {$+0.05$}; \node[tinylabel] at (9.05,1.32) {$0.20$};
+  \node[tinylabel] at (9.05,.62) {$0.08$}; \node[tinylabel] at (9.05,-.08) {$0.84$};
+
+  % oracle
+  \foreach \y in {0.25,0.95,1.65,2.35} \node[text=teal,font=\large\bfseries] at (10.95,\y) {$\checkmark$};
+  \node[tinylabel] at (10.95,2.02) {$-0.00$}; \node[tinylabel] at (10.95,1.32) {$0.17$};
+  \node[tinylabel] at (10.95,.62) {$0.06$}; \node[tinylabel] at (10.95,-.08) {$0.75$};
+  \node[tinylabel,text=midgray] at (10.95,-.72) {unattainable ceiling};
+\end{tikzpicture}

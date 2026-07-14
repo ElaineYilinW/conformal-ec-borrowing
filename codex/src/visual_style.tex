@@ -1,0 +1,40 @@
+% Shared visual language for the two new blueprint versions.
+\definecolor{navy}{HTML}{17324D}
+\definecolor{blue}{HTML}{2F75B5}
+\definecolor{sky}{HTML}{DCEAF6}
+\definecolor{teal}{HTML}{2A8C82}
+\definecolor{mint}{HTML}{DDF1EC}
+\definecolor{amber}{HTML}{D98C10}
+\definecolor{sand}{HTML}{FAE8C5}
+\definecolor{red}{HTML}{B94A48}
+\definecolor{rose}{HTML}{F6DEDE}
+\definecolor{ink}{HTML}{263238}
+\definecolor{midgray}{HTML}{66737D}
+\definecolor{lightgray}{HTML}{EEF1F3}
+\definecolor{rctgray}{HTML}{8D969D}
+
+\tikzset{
+  >={Latex[length=2.1mm]},
+  flow/.style={-Latex, line width=0.9pt, draw=midgray},
+  softflow/.style={-Latex, line width=0.8pt, draw=midgray, dashed},
+  box/.style={rounded corners=2.5pt, draw=midgray, line width=0.7pt,
+              fill=white, inner sep=5pt, align=center},
+  rctbox/.style={box, draw=rctgray, fill=lightgray},
+  extbox/.style={box, draw=blue, fill=sky},
+  keepbox/.style={box, draw=teal, fill=mint},
+  warnbox/.style={box, draw=amber, fill=sand},
+  badbox/.style={box, draw=red, fill=rose},
+  stage/.style={box, draw=navy, fill=white, minimum height=9mm},
+  smalllabel/.style={font=\scriptsize, text=midgray, align=center},
+  tinylabel/.style={font=\tiny, text=midgray, align=center},
+  titlelabel/.style={font=\small\bfseries, text=navy, align=center},
+}
+
+\newcommand{\RCT}{\textcolor{rctgray}{\textbf{RCT}}}
+\newcommand{\EC}{\textcolor{blue}{\textbf{external controls}}}
+\newcommand{\Keep}{\textcolor{teal}{\textbf{retain}}}
+\newcommand{\Drop}{\textcolor{red}{\textbf{do not borrow}}}
+
+\newenvironment{takeaway}
+  {\par\begin{center}\begin{minipage}{0.94\linewidth}\color{navy}\small\textbf{Take-away.}\ }
+  {\end{minipage}\end{center}\par}

@@ -1,0 +1,22 @@
+\begin{tikzpicture}[font=\small, x=1cm, y=1cm]
+  \node[smalllabel,font=\scriptsize\bfseries,text=navy,anchor=west] at (0,2.65) {SCREEN};
+  \node[rctbox,text width=1.55cm] (rc) at (1.05,1.82) {RCT controls};
+  \node[extbox,text width=1.55cm] (ec) at (1.05,.78) {all ECs};
+  \node[stage,text width=2.15cm] (score) at (3.75,1.30) {cross-fitted\\longitudinal score};
+  \node[stage,text width=2.15cm] (rank) at (6.65,1.30) {weighted rank\\$\omega_0=f_{\E,0}/f_\R$};
+  \node[keepbox,text width=1.55cm] (keep) at (9.35,1.82) {retained ECs};
+  \node[badbox,text width=1.55cm] (drop) at (9.35,.78) {not borrowed};
+  \draw[flow] (rc)--(score); \draw[flow,draw=blue] (ec)--(score);
+  \draw[flow] (score)--(rank); \draw[flow,draw=teal] (rank)--(keep);
+  \draw[flow,draw=red] (rank)--(drop);
+
+  \draw[draw=lightgray,line width=.7pt] (0,-.05)--(11.75,-.05);
+  \node[smalllabel,font=\scriptsize\bfseries,text=navy,anchor=west] at (0,-.42) {REFIT + ESTIMATE};
+  \node[keepbox,text width=1.65cm] (kr) at (1.05,-1.45) {retained ECs};
+  \node[warnbox,text width=2.15cm] (refit) at (3.75,-1.45) {refit source, outcome, and variance models};
+  \node[stage,text width=2.15cm] (transport) at (6.65,-1.45) {transport to RCT mix\\$\rho_\gamma=f_\R/f_{\E,\gamma}$};
+  \node[keepbox,text width=2.35cm] (estimate) at (9.70,-1.45) {AIPW control mean + inverse-variance borrowing};
+  \draw[flow,draw=teal] (kr)--(refit); \draw[flow] (refit)--(transport); \draw[flow] (transport)--(estimate);
+
+  \node[tinylabel,text=teal] at (1.05,-.73) {same retained set};
+\end{tikzpicture}

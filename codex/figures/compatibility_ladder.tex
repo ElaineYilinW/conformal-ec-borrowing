@@ -1,0 +1,13 @@
+\begin{tikzpicture}[font=\small, x=1cm, y=1cm]
+  \node[stage,text width=2.45cm] (de) at (1.55,2.10) {conditional distribution compatibility\\\scriptsize DE};
+  \node[stage,text width=2.45cm] (vme) at (5.10,2.10) {vector conditional mean compatibility\\\scriptsize VME};
+  \node[stage,text width=2.45cm] (mec) at (8.65,2.10) {contrast-specific mean compatibility\\\scriptsize ME-$c$};
+  \draw[flow] (de)--(vme);
+  \draw[flow] (vme)--(mec);
+
+  \node[warnbox,text width=3.25cm] (se) at (2.55,0.15) {chosen-score compatibility\\$V=s(Y,X)$ has the same law};
+  \node[badbox,text width=3.55cm] (claim) at (7.75,0.15) {passing one scalar-score screen does not prove DE, VME, or ME-$c$};
+  \draw[flow] (de.south)--(se.north);
+  \draw[softflow,draw=red] (se)--(claim);
+  \node[smalllabel,anchor=west] at (0,-0.90) {The screen's meaning is determined by the prespecified score; a broader claim requires a broader diagnostic and stronger assumptions.};
+\end{tikzpicture}

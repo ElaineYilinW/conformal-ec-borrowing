@@ -1,0 +1,17 @@
+\begin{tikzpicture}[font=\small, x=1cm, y=1cm]
+  \node[titlelabel] at (2.85,2.25) {One-time split};
+  \draw[rounded corners=2pt,fill=sky,draw=blue] (.25,1.35) rectangle (2.85,1.78);
+  \draw[rounded corners=2pt,fill=mint,draw=teal] (2.85,1.35) rectangle (5.45,1.78);
+  \node[smalllabel] at (1.55,1.56) {fit score model};
+  \node[smalllabel] at (4.15,1.56) {calibrate ranks};
+  \node[smalllabel,text=red] at (2.85,.88) {only the calibration half defines ranks};
+
+  \node[titlelabel] at (9.0,2.25) {$K$-fold cross-fitting / CV+};
+  \foreach \k in {0,...,4} {
+    \pgfmathsetmacro{\x}{6.35+1.05*\k}
+    \draw[rounded corners=1pt,fill=sky,draw=blue] (\x,1.35) rectangle +(0.85,0.43);
+    \node[tinylabel] at (\x+0.425,1.56) {fold \the\numexpr\k+1\relax};
+  }
+  \node[smalllabel,text=teal] at (8.90,.88) {every control gets an out-of-fold score};
+  \node[smalllabel,anchor=west] at (0,.25) {Reference-cell benefit: power $0.65\rightarrow0.73$; caveat: weighted CV+ still needs its own theorem.};
+\end{tikzpicture}

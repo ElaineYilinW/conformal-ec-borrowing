@@ -1,0 +1,16 @@
+\begin{tikzpicture}[font=\small, x=1cm, y=1cm]
+  \node[titlelabel,anchor=west] at (0,3.05) {What should a covariance difference mean?};
+
+  \node[smalllabel,font=\scriptsize\bfseries,text=navy,anchor=east] at (1.75,1.75) {common RCT\\reference};
+  \node[rctbox,text width=2.05cm] (c1) at (3.25,1.75) {RCT + EC residuals};
+  \node[stage,text width=2.15cm] (c2) at (6.05,1.75) {both scored with $\Sigma_\R^{-1}$};
+  \node[warnbox,text width=2.35cm] (c3) at (9.10,1.75) {detect mean, variance, and correlation differences};
+  \draw[flow] (c1)--(c2); \draw[flow] (c2)--(c3);
+
+  \node[smalllabel,font=\scriptsize\bfseries,text=navy,anchor=east] at (1.75,-0.55) {source-specific\\standardization};
+  \node[extbox,text width=2.05cm] (s1) at (3.25,-0.55) {RCT uses $\Sigma_\R^{-1}$\\EC uses $\Sigma_\E^{-1}$};
+  \node[stage,text width=2.15cm] (s2) at (6.05,-0.55) {compare separately whitened scores};
+  \node[keepbox,text width=2.35cm] (s3) at (9.10,-0.55) {tolerate a pure covariance difference by design};
+  \draw[flow] (s1)--(s2); \draw[flow] (s2)--(s3);
+
+\end{tikzpicture}

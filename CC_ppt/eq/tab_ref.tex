@@ -1,0 +1,15 @@
+\documentclass[border=8pt]{standalone}
+\usepackage{amsmath,amssymb,bm,booktabs,array}
+\begin{document}
+\renewcommand{\arraystretch}{1.35}\large\begin{tabular}{lcccccc}
+\toprule
+Method & Detection & False-excl. & Bias & RMSE & Type-I & Power\\
+\midrule
+RCT-only & --- & --- & $-0.00$ & $0.20$ & $0.06$ & $0.64$\\
+Full EC-AIPW & --- & --- & $-0.42$ & $0.49$ & $0.42$ & $0.06$\\
+Oracle (unattainable) & $1.00$ & $0.00$ & $-0.00$ & $0.17$ & $0.06$ & $0.78$\\
+\midrule
+\textbf{sym-ada (ours)} & $1.00$ & $0.10$ & $\bm{0.00}$ & $\bm{0.18}$ & $\bm{0.06}$ & $\bm{0.73}$\\
+\bottomrule
+\end{tabular}
+\end{document}

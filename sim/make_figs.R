@@ -16,7 +16,7 @@ fc <- mean(B == 0); fk <- mean(B == 1)
 dc <- function(v, sc = 1) { d <- density(v, n = 220, adjust = 1.1); d$y <- d$y * sc; d }
 
 # ---- Panel 1: outcome Y density ----
-pdf("fig_outcome.pdf", width = 6.8, height = 3.0, pointsize = 10)
+pdf("../paper/figures/fig_outcome.pdf", width = 6.8, height = 3.0, pointsize = 10)
 par(mar = c(3.2, 0.8, 0.6, 0.6), mgp = c(1.9, 0.6, 0))
 d1 <- dc(Zr); d2 <- dc(Ze[B == 0], fc); d3 <- dc(Ze[B == 1], fk)
 plot(NA, xlim = range(d1$x, d2$x, d3$x), ylim = c(0, max(d1$y)),
@@ -37,7 +37,7 @@ br <- seq(0, 1, by = 0.05)
 hc <- hist(pv[B == 0], breaks = br, plot = FALSE)   # compatible
 hi <- hist(pv[B == 1], breaks = br, plot = FALSE)   # incompatible
 ym <- max(hc$counts, hi$counts)
-pdf("fig_pval.pdf", width = 6.8, height = 3.0, pointsize = 10)
+pdf("../paper/figures/fig_pval.pdf", width = 6.8, height = 3.0, pointsize = 10)
 par(mar = c(3.2, 3.0, 0.6, 0.6), mgp = c(1.9, 0.6, 0))
 plot(NA, xlim = c(0, 1), ylim = c(0, ym * 1.12),
      xlab = expression("weighted residual-rank conformal " * italic(p) * "-value"),

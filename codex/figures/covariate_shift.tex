@@ -1,0 +1,21 @@
+\begin{tikzpicture}[font=\small, x=1cm, y=1cm]
+  \node[smalllabel,font=\tiny\bfseries,text=navy] at (1.85,2.55) {1. BASELINE MIX};
+  \node[rctbox,text width=3.0cm] at (1.85,1.85) {RCT controls\\70\% mild \;|\; 30\% severe};
+  \node[extbox,text width=3.0cm] at (1.85,.60) {compatible ECs\\30\% mild \;|\; 70\% severe};
+
+  \node[smalllabel,font=\tiny\bfseries,text=navy] at (6.0,2.55) {2A. UNWEIGHTED};
+  \draw[rounded corners=1pt,fill=lightgray,draw=midgray] (4.45,1.62) rectangle (6.62,2.02);
+  \draw[rounded corners=1pt,fill=sand,draw=amber] (6.62,1.62) rectangle (7.55,2.02);
+  \node[tinylabel] at (6.0,1.32) {still 70\% mild / 30\% severe};
+  \node[badbox,text width=2.7cm] at (6.0,.55) {wrong marginal score mixture when spread depends on severity};
+
+  \node[smalllabel,font=\tiny\bfseries,text=navy] at (10.15,2.55) {2B. WEIGHTED};
+  \draw[rounded corners=1pt,fill=lightgray,draw=midgray] (8.60,1.62) rectangle (9.53,2.02);
+  \draw[rounded corners=1pt,fill=sand,draw=amber] (9.53,1.62) rectangle (11.70,2.02);
+  \node[tinylabel] at (10.15,1.32) {now 30\% mild / 70\% severe};
+  \node[keepbox,text width=2.7cm] at (10.15,.55) {calibrated compatible-EC mixture\\$\omega_0=f_{\E,0}/f_\R$};
+
+  \draw[flow] (3.65,1.85)--(4.20,1.85);
+  \draw[flow,draw=blue] (7.80,1.85)--(8.35,1.85);
+  \node[tinylabel,text=blue] at (10.15,-.42) {change score mass, not score value};
+\end{tikzpicture}

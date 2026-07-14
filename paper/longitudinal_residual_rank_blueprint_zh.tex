@@ -1,0 +1,1330 @@
+\documentclass[11pt]{article}
+
+\usepackage[UTF8,fontset=fandol]{ctex}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,mathtools,bm}
+\usepackage{booktabs,longtable,array,tabularx}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{caption}
+\usepackage{natbib}
+\usepackage[hidelinks]{hyperref}
+\usepackage{setspace}
+\usepackage{xcolor}
+
+\setstretch{1.08}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=0.25em,topsep=0.25em}
+\setlist[enumerate]{leftmargin=1.7em,itemsep=0.3em,topsep=0.3em}
+\renewcommand{\arraystretch}{1.15}
+
+\newcommand{\R}{\mathrm{R}}
+\newcommand{\E}{\mathrm{E}}
+\newcommand{\I}{\mathbb{I}}
+\newcommand{\Exp}{\mathbb{E}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\ind}{\mathbb{I}}
+\newcommand{\vect}{\operatorname{vec}}
+\newcommand{\given}{\,\middle|\,}
+
+\title{\textbf{协变量偏移校正的纵向残差秩筛选\\用于外部对照的选择性借用}\\[0.5em]
+\large 一份工作研究蓝图}
+\author{}
+\date{2026 年 7 月}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+本文为纵向外部对照的选择性借用制定一份可操作的方法学计划。所提出的诊断使用残差轨迹的\emph{秩},而非绝对残差阈值,来识别其结局看起来与随机对照不兼容的外部受试者。相对于普通共形选择性借用,本文的核心扩展是对基线协变量偏移的校正:允许随机对照与外部对照具有不同的协变量分布,只要存在重叠、且兼容的外部结局律在给定协变量条件下相同。为便于直觉与理论,本文用一个简单的分割共形(split-conformal)构造进行说明;而拟采用的实现使用交叉验证的残差得分,以避免浪费本就稀缺的随机对照样本。本文区分了因果识别假设与所选非一致性得分实际筛查的那个更弱的对象,发展了若干纵向得分选项,研究了公共参照(common-reference)与分来源(source-specific)的协方差标准化,给出了一个解析上可处理的纵向数据生成过程,并规定了一份包含空结果表的完整模拟计划。
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{临时的项目陈述}
+
+一个简洁的工作描述是:
+
+\begin{quote}
+我们发展一种协变量偏移校正的纵向残差秩筛选,用于外部对照的选择性借用。随机对照提供参照结局轨迹。一个工作纵向模型产生受试者层面的非一致性得分,但借用决策基于每个外部得分的经验\emph{秩},而非其原始数值。加权秩校准处理随机与外部两个来源之间不同的基线协变量分布。筛选之后,重新拟合最终的来源模型与结局模型,并通过一个纵向外部对照 AIPW 估计量纳入保留下来的外部对照。
+\end{quote}
+
+用\emph{筛选(screening)}一词优于\emph{修剪诊断(trimming diagnostic)}。在因果推断的写作中,``修剪''通常让人联想到剔除倾向得分极端的单位。而这里的主要动作是基于结局的、受试者层面的筛选。该方法在数学校准上是共形的,但实质性的描述应强调它相对已有共形选择性借用的新意:协变量偏移校正、纵向轨迹得分,以及与一个重拟合的纵向借用估计量的整合。
+
+一个合适的临时标题是:
+
+\begin{quote}
+\textbf{协变量偏移校正的纵向残差秩筛选,用于外部对照的选择性借用。}
+\end{quote}
+
+这是一个工作定位,尚非最终的新颖性主张。普通的残差秩选择性借用已由 \citet{zhu2025csb} 发展;协变量偏移下的加权共形校准也已在共形文献中发展 \citep{tibshirani2019weighted,jin2026weighted}。可能的贡献在于它们在外部对照情形中的纵向、估计目标感知(estimand-aware)的整合,以及对该筛选到底诊断与不诊断哪一种兼容性概念的细致研究。
+
+\section{科学动机}
+
+\subsection{为什么纵向结局重要}
+
+设基线后的未治疗或已治疗结局轨迹为
+\[
+\bm Y(a)=\{Y_1(a),\ldots,Y_T(a)\}^{\top}, \qquad a\in\{0,1\}.
+\]
+试验总体的纵向治疗效应向量为
+\[
+\bm\tau=\Exp_{\R}\{\bm Y(1)-\bm Y(0)\}.
+\]
+一个预先指定的临床对比为
+\[
+\tau_c=c^{\top}\bm\tau
+=\Exp_{\R}\!\left[c^{\top}\{\bm Y(1)-\bm Y(0)\}\right].
+\]
+示例包括:
+\begin{itemize}
+    \item 末次访视:$c=(0,\ldots,0,1)^{\top}$;
+    \item 末次减基线的变化:当基线纳入 $\bm Y$ 时 $c=(-1,0,\ldots,0,1)^{\top}$;
+    \item 随访期平均反应:$c=(1/T,\ldots,1/T)^{\top}$;
+    \item 使用数值积分权重的曲线下面积对比;
+    \item 预先指定的线性斜率对比。
+\end{itemize}
+
+纵向数据的价值不止于简单地构造若干终点。
+
+其一,它们刻画反应的时间模式。两个对照来源可能在末次访视一致,却在早期下降、恢复、斜率、曲率或持续性上不同。这些差异可能在科学上重要,也可能揭示标量终点看不到的不兼容。
+
+其二,重复测量提供受试者内的信息。若协方差结构建模得当,相关的测量相对于只保留一个访视能提升精度。
+
+其三,纵向数据使外部对照问题更难。分析者必须处理随时间变化的变异、受试者内协方差、不规则的访视时点、间歇性缺失、脱落,以及可能存在的分来源测量过程。真实世界数据在这些方面可能尤为异质。
+
+纵向这一侧重也与既有的、受 FDA 支持的外部对照项目相一致。\citet{zhou2025causal} 的 JRSS-A 工作研究了具有纵向结局的随机试验,并部分受 FDA/HHS 合作协议 U01 FD007206 支持。这为纵向方向提供了动机,但上述科学理由应当仍是主要论据,而非关于 FDA 优先事项的宽泛主张。
+
+\subsection{为什么真实世界外部对照需要选择性借用}
+
+外部对照可能来自既往试验、登记库、电子健康记录或自然史研究。相比于经过高度协调的历史随机试验,真实世界对照可能在以下方面不同:
+\begin{itemize}
+    \item 基线疾病严重程度与预后因素;
+    \item 访视安排与观测频率;
+    \item 终点采集、测量误差与裁定;
+    \item 缺失与脱落机制;
+    \item 日历时间、标准治疗与合并治疗;
+    \item 条件结局的均值、方差、相关性或尾部。
+\end{itemize}
+
+当外部对照兼容时,完全借用能提升精度;但当校正后仍残留不兼容时,会引入偏差。因此科学问题不仅是是否使用外部数据,而是\emph{哪些}外部受试者为随机试验总体携带可信的信息。
+
+\section{识别假设与诊断目标}
+
+\subsection{记号}
+
+设 $S=1$ 表示随机试验,$S=0$ 表示外部来源。在试验内部,$A=1$ 表示随机治疗,$A=0$ 表示随机对照。筛选使用随机对照与外部对照,二者均在对照条件下观测。
+
+设 $X$ 表示在两个来源中可比测量的基线协变量。主要因果目标是随机试验总体中的 $\tau_c$。
+
+\subsection{四个不同的兼容性概念}
+
+这些概念不应被混为一谈。
+
+\paragraph{1. 协变量重叠。}
+为使外部对照能为试验总体提供信息,相关的试验协变量支撑必须在外部得到体现:
+\[
+\supp\{X\mid S=1\}\subseteq \supp\{X\mid S=0\},
+\]
+或至少应将分析限制在公共支撑区域内。重要的是,重叠\emph{不}要求两个协变量分布相等:
+\[
+f_{\R}(x)\neq f_{\E}(x)
+\]
+是允许的。这一区分是所提出的加权校准的核心。
+
+\paragraph{2. 单一对比的条件均值兼容。}
+为识别某个特定对比 $c^{\top}\bm Y(0)$ 的未治疗均值,一个充分假设是
+\[
+\Exp\{c^{\top}\bm Y(0)\mid X,S=1\}
+=
+\Exp\{c^{\top}\bm Y(0)\mid X,S=0\}.
+\tag{ME-$c$}
+\]
+即使条件方差、相关性、尾部或其他轨迹特征不同,此条件也可能成立。
+
+\paragraph{3. 向量条件均值兼容。}
+若关心所有线性轨迹对比,则一个更强的均值条件是
+\[
+\Exp\{\bm Y(0)\mid X,S=1\}
+=
+\Exp\{\bm Y(0)\mid X,S=0\}.
+\tag{VME}
+\]
+
+\paragraph{4. 条件分布兼容。}
+更强的分布层面条件是
+\[
+\bm Y(0)\mid X,S=1
+\ \overset{d}{=}\
+\bm Y(0)\mid X,S=0.
+\tag{DE}
+\]
+JRSS-A 论文通过 $\bm Y(0)\perp S\mid X$ 使用了这种形式的条件分布可忽略性条件 \citep{zhou2025causal}。CSB 论文明确区分了普通共形秩有效性所需的完全可交换性,与用于识别平均治疗效应的更弱的均值可交换性 \citep{zhu2025csb}。
+
+逻辑关系为
+\[
+\text{DE}\quad\Longrightarrow\quad\text{VME}\quad\Longrightarrow\quad\text{ME-$c$},
+\]
+但一般而言反向蕴含均不成立。
+
+\subsection{残差秩筛选实际诊断的是什么}
+
+设一个拟合的工作模型与尺度/协方差模型定义一个标量非一致性得分
+\[
+V=s\{\bm Y,X;\widehat\eta\}.
+\]
+基于 $V$ 的筛选并不直接验证 DE。它的直接原假设是\emph{得分兼容}:
+\[
+V\mid X,S=1\ \overset{d}{=}\ V\mid X,S=0.
+\tag{SE}
+\]
+若 DE 成立且在两个来源中应用同一个固定的评分规则,则 SE 成立。因此 DE 对得分兼容是充分的。其逆不成立:不同的纵向分布可以映射到同一个一维得分分布。
+
+相应地,该方法应如下描述:
+
+\begin{quote}
+该筛选在所选得分下评估与随机对照的残差轨迹兼容性。通过筛选并不能确立条件分布可交换性。当外部不兼容通过所选非一致性得分显现时,该程序能减少偏差。
+\end{quote}
+
+一次\emph{未}通过的筛选同样需要谨慎解释。一个全轨迹马氏得分可能检出一个不使均值对比 $\tau_c$ 产生偏差的方差或协方差差异。这正是为什么得分选择是一个实质性的设计决策,而不仅是技术决策。
+
+\section{既有的设计阶段筛选:倾向得分修剪}
+
+定义来源倾向得分
+\[
+e(X)=\Pr(S=1\mid X).
+\]
+倾向得分匹配、加权与修剪是平衡已测基线协变量的经典工具 \citep{rosenbaum1983,crump2009}。极端的 $e(X)$ 值识别出某一来源相对另一来源密度稀薄的区域,因为
+\[
+\frac{f_{\R}(x)}{f_{\E}(x)}
+=
+\frac{1-\Pr(S=1)}{\Pr(S=1)}
+\frac{e(x)}{1-e(x)}.
+\]
+
+因此倾向得分修剪针对的是协变量重叠或实际的正性(positivity)。它并不直接评估
+\[
+\bm Y(0)\mid X,S=1
+\]
+与
+\[
+\bm Y(0)\mid X,S=0
+\]
+是否兼容。这为基于结局的残差秩筛选提供了一座自然的桥梁:
+\[
+\begin{array}{ccl}
+\text{倾向得分修剪} &:& X\text{-重叠},\\[0.2em]
+\text{残差秩筛选} &:& \text{通过 }V\text{ 判断 }\bm Y\mid X\text{-兼容性}.
+\end{array}
+\]
+
+这两步是互补的。位于试验协变量支撑之外的单位不应被结局筛选``挽救'';而具有充分 $X$ 支撑的单位仍可能表现出不兼容的对照轨迹。
+
+\section{面向广泛读者的基本思想:标量结局、无协变量}
+
+本节刻意使用最简单的设定。其目的是解释与可视化,而非最终方法。
+
+假设用随机对照拟合一个结局模型。对校准样本中的每个随机对照,计算一个绝对残差
+\[
+V_i^{\R}=|Y_i^{\R}-\widehat m|.
+\]
+对外部受试者 $j$,计算
+\[
+V_j^{\E}=|Y_j^{\E}-\widehat m|.
+\]
+判定外部受试者的依据\emph{不是} $V_j^{\E}$ 是否超过某个固定数值(如 2 或 3),而是其残差在随机对照残差中排在何处:
+\[
+p_j=
+\frac{1+\sum_{i=1}^{n_C}\ind(V_i^{\R}\ge V_j^{\E})}{n_C+1}.
+\tag{1}
+\]
+较小的 $p_j$ 意味着几乎没有随机对照的残差有外部受试者那么大。
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[x=1.05cm,y=1cm,font=\small]
+    % panel A
+    \node[anchor=west] at (0,2.35) {\textbf{A. 外部残差落在随机对照参照范围之内}};
+    \draw[->] (0,1.55) -- (10.2,1.55) node[right] {残差得分};
+    \foreach \x in {0.8,1.5,2.1,2.9,3.4,4.2,4.8,5.6,6.2,7.1,7.9,8.7}
+        \fill (\x,1.55) circle (1.7pt);
+    \draw[line width=0.8pt] (5.15,1.38) -- (5.15,1.72);
+    \node[below] at (5.15,1.30) {外部};
+    \node[anchor=west] at (0,0.85) {有若干随机对照的残差至少同样大;保留该受试者。};
+
+    % panel B
+    \node[anchor=west] at (0,-0.15) {\textbf{B. 外部残差比随机对照参照更极端}};
+    \draw[->] (0,-0.95) -- (10.2,-0.95) node[right] {残差得分};
+    \foreach \x in {0.8,1.5,2.1,2.9,3.4,4.2,4.8,5.6,6.2,7.1,7.9,8.7}
+        \fill (\x,-0.95) circle (1.7pt);
+    \draw[line width=0.8pt] (9.65,-1.12) -- (9.65,-0.78);
+    \node[below] at (9.65,-1.20) {外部};
+    \node[anchor=west] at (0,-1.75) {几乎没有随机对照的残差这么大;将该受试者筛除。};
+\end{tikzpicture}
+\caption{残差排序,而非绝对残差阈值。圆点为随机对照的校准得分,竖线标记为某个外部得分。拟合模型定义了顺序;校准样本决定了该顺序有多极端。}
+\label{fig:basicrank}
+\end{figure}
+
+在给定拟合模型的条件下,若外部受试者与校准对照可交换,则即使拟合模型误设,它们的得分也是可交换的。在无平局的情形下,外部得分在 $n_C+1$ 个得分中的秩为离散均匀分布。因此分割共形 $p$ 值是超均匀的,正如 \citet{zhu2025csb} 为 CSB 所形式化的那样。
+
+这幅简单的图向更广泛的读者传达了关键思想:结局模型提供一个有用的顺序,而秩校准决定该外部观测相对真实随机对照是否异常地不兼容。
+
+\section{为什么秩校准优于直接使用预测残差}
+
+这是一个核心动机,应予强调,而非降格为次要的附注。
+
+\subsection{直接的标准化残差筛选}
+
+一个看似更简单的做法是:
+\begin{enumerate}
+    \item 在随机对照上拟合一个纵向模型;
+    \item 预测每条外部轨迹;
+    \item 计算原始或标准化残差;
+    \item 当残差超过某固定阈值时删除该外部受试者。
+\end{enumerate}
+
+例如,可能宣称
+\[
+\max_t\left|
+\frac{Y_{jt}^{\E}-\widehat m_t(X_j)}{\widehat\sigma_t(X_j)}
+\right|>2
+\]
+为不兼容。这样的规则要求拟合的均值模型与尺度模型足够准确,使得该数值阈值具有有效的解释。若均值模型遗漏了非线性时间趋势或交互,或若尺度模型低估了变异,兼容的外部受试者可能人为地显得极端。
+
+\subsection{共形秩原理}
+
+设真实的条件结局律任意。在交叉拟合或样本分割之后,将工作模型 $\widehat\eta$ 视为固定,并定义
+\[
+V=s\{\bm Y,X;\widehat\eta\}.
+\]
+在条件兼容下,
+\[
+\bm Y^{\R}\mid X=x
+\overset d=
+\bm Y^{\E}\mid X=x.
+\]
+因此,对任何固定的评分规则(无论正确与否),
+\[
+\Pr(V^{\R}\le v\mid X=x)
+=
+\Pr(V^{\E}\le v\mid X=x).
+\tag{2}
+\]
+该等式并不要求拟合模型等于真实结局模型。误设通过同一个得分映射对兼容的随机受试者与外部受试者产生相同影响。
+
+因此秩校准的优势是精确的:
+\begin{itemize}
+    \item 原始得分不需要正态或卡方参照分布;
+    \item 不需要一个普适的数值阈值;
+    \item 兼容的随机对照与外部对照所共享的系统性工作模型误差,在随机对照得分分布中被经验地表示出来;
+    \item 模型质量主要影响将不兼容与兼容对照区分开的能力(即功效),而非 oracle 原假设下的校准。
+\end{itemize}
+
+这并不意味着结局模型无关紧要。一个很差的模型会产生宽而嘈杂的随机对照得分,从而使真正的外部漂移不再排在极端处。差的尺度模型也可能强调错误的访视或协变量区域。交叉拟合很重要,因为来自灵活模型的样本内残差可能过于乐观。
+
+核心区分是:
+\[
+\begin{array}{ccl}
+\text{直接残差阈值} &:& \text{需要一个可信的数值尺度},\\
+\text{残差秩} &:& \text{将该尺度经验地对随机对照进行校准}.
+\end{array}
+\]
+
+\section{所提出的完整方法}
+
+\subsection{步骤 1:预先指定估计目标并协调数据}
+
+选择一个主要对比 $c$ 与目标
+\[
+\tau_c=\Exp_{\R}\!\left[c^{\top}\{\bm Y(1)-\bm Y(0)\}\right].
+\]
+在结局筛选之前,统一入组标准、终点定义、访视窗口、基线协变量与数据质量规则。评估随机试验的协变量支撑是否在外部对照中得到体现。允许不同的协变量分布;不允许缺乏重叠。
+
+\subsection{步骤 2:用随机对照拟合工作纵向模型}
+
+设 $\mathcal C$ 为随机对照集合。将其划分为 $K$ 折
+\[
+\mathcal C=\mathcal C_1\cup\cdots\cup\mathcal C_K.
+\]
+对每一折 $k$,在 $\mathcal C\setminus\mathcal C_k$ 上拟合一个工作均值模型:
+\[
+\widehat m^{(-k)}(X)
+=
+\{\widehat m^{(-k)}_1(X),\ldots,\widehat m^{(-k)}_T(X)\}^{\top}.
+\]
+可选地拟合一个工作内部尺度或协方差模型 $\widehat\Sigma_{\R}^{(-k)}(X)$。该模型可以是 MMRM、GEE、混合模型、样条模型或某种灵活的预测算法。方法学主张并不是该模型为真;它被用来构造一个有信息量的排序。
+
+\subsection{步骤 3:定义纵向非一致性得分}
+
+若干得分回答不同的科学问题。
+
+\paragraph{估计目标对齐的对比得分。}
+对预先指定的对比 $c$,
+\[
+V_i^{(c,-k)}
+=
+\frac{\left|c^{\top}\{\bm Y_i-\widehat m^{(-k)}(X_i)\}\right|}
+{\widehat s_c^{(-k)}(X_i)},
+\qquad
+\{\widehat s_c^{(-k)}(X)\}^2
+=c^{\top}\widehat\Sigma_{\R}^{(-k)}(X)c.
+\tag{3}
+\]
+这将筛选聚焦于与主要均值对比对齐的轨迹差异。
+
+\paragraph{最大标准化残差得分。}
+\[
+V_i^{(\max,-k)}
+=
+\max_{1\le t\le T}
+\left|
+\frac{Y_{it}-\widehat m_t^{(-k)}(X_i)}
+{\widehat\sigma_t^{(-k)}(X_i)}
+\right|.
+\tag{4}
+\]
+这对任一访视上的大差异都敏感。
+
+\paragraph{公共参照马氏得分。}
+\[
+V_i^{(M,-k)}
+=
+\{\bm Y_i-\widehat m^{(-k)}(X_i)\}^{\top}
+\{\widehat\Sigma_{\R}^{(-k)}(X_i)\}^{-1}
+\{\bm Y_i-\widehat m^{(-k)}(X_i)\}.
+\tag{5}
+\]
+对两个来源都使用随机对照的协方差,检验某条外部残差轨迹相对随机对照是否异常,包括异常的变异或相关。
+
+不应宣称任何得分普适最优。主分析可使用估计目标对齐的得分,并以最大或马氏得分作为更宽泛的轨迹层面敏感性分析。
+
+\subsection{步骤 4:区分公共参照与分来源标准化}
+
+一个核心的设计问题是:方差或协方差差异本身是否应触发剔除。
+
+假设在条件均值相等下,
+\[
+\bm r_{\R}=L_{\R}(X)\bm\varepsilon,
+\qquad
+\bm r_{\E}=L_{\E}(X)\bm\varepsilon,
+\tag{6}
+\]
+其中标准化误差向量 $\bm\varepsilon$ 在两个来源中同分布,但
+\[
+\Sigma_{\R}(X)=L_{\R}(X)L_{\R}(X)^{\top}
+\quad\text{与}\quad
+\Sigma_{\E}(X)=L_{\E}(X)L_{\E}(X)^{\top}
+\]
+可能不同。
+
+在使用公共内部参照协方差时,
+\[
+V_{\R}=\bm r_{\R}^{\top}\Sigma_{\R}^{-1}\bm r_{\R}
+=\bm\varepsilon^{\top}\bm\varepsilon,
+\]
+但
+\[
+V_{\E}=\bm r_{\E}^{\top}\Sigma_{\R}^{-1}\bm r_{\E}
+=\bm\varepsilon^{\top}L_{\E}^{\top}\Sigma_{\R}^{-1}L_{\E}\bm\varepsilon.
+\]
+因此,即使条件均值一致,方差或协方差差异也能使外部得分系统性地更大。
+
+分来源标准化得分则改用
+\[
+V_{\R}^{\mathrm{src}}
+=\bm r_{\R}^{\top}\Sigma_{\R}^{-1}\bm r_{\R},
+\qquad
+V_{\E}^{\mathrm{src}}
+=\bm r_{\E}^{\top}\Sigma_{\E}^{-1}\bm r_{\E}.
+\tag{7}
+\]
+在模型 (6) 与已知协方差下,
+\[
+V_{\R}^{\mathrm{src}}=V_{\E}^{\mathrm{src}}=\bm\varepsilon^{\top}\bm\varepsilon.
+\]
+因此,在理想的公共标准化误差模型下,使用外部来源的协方差能中和纯粹的方差或协方差尺度差异。这直接应对了``剔除均值兼容但变异更大的对照''这一风险。
+
+但它并不自动解决问题:
+\begin{enumerate}
+    \item $\Sigma_{\E}$ 必须从外部池估计,而非从单个个体估计。若纳入了不兼容的外部受试者,其漂移会抬高协方差,掩盖正被筛查的那种不兼容。
+    \item 外部协方差应在独立于候选者得分的数据上估计,例如通过外部折交叉拟合,并最好使用稳健或正则化的协方差估计。
+    \item 分开的分来源变换在两个来源中不再使用完全相同的固定得分映射。若无额外定理,精确的有限样本共形有效性不会被继承;所得方法最初最好视为一个渐近或敏感性版本。
+    \item 分来源白化(whitening)有意从诊断中移除协方差差异。若目标是均值兼容,这是可取的;但若不同的变异或相关反映了临床上重要的测量或轨迹失配,则不可取。
+\end{enumerate}
+
+因此所提出的模拟应比较两种科学上不同的筛选:
+\begin{itemize}
+    \item \textbf{公共参照筛选}:检测相对随机对照的均值与协方差不兼容;
+    \item \textbf{来源标准化筛选}:试图容忍分来源的协方差,更狭窄地聚焦于标准化后的轨迹位置/形状。
+\end{itemize}
+
+对于第一篇论文,公共参照得分在理论上更干净。分来源协方差标准化是一个重要的扩展与敏感性分析,而非自动的替代。
+
+\subsection{步骤 5:明确陈述协变量偏移假设}
+
+所提出的加权由下述原假设模型驱动:
+\[
+\supp\{X\mid S=0,B=0\}\subseteq \supp\{X\mid S=1,A=0\}
+\quad\text{或在目标区域上有充分的双侧重叠},
+\tag{8}
+\]
+以及
+\[
+\bm Y\mid X,S=0,B=0
+\overset d=
+\bm Y\mid X,S=1,A=0.
+\tag{9}
+\]
+这里 $B=0$ 表示一个兼容的外部对照。协变量分布无需相等:
+\[
+f_{\E,0}(x)\neq f_{\R}(x)
+\]
+被明确允许。
+
+为进行 oracle 推导,定义原假设/兼容密度比
+\[
+\omega_0(x)=\frac{f_{\E,0}(x)}{f_{\R}(x)}.
+\tag{10}
+\]
+若污染独立于 $X$,则兼容的外部协变量分布等于整体外部协变量分布,$\omega_0$ 可用全部外部协变量估计。若不兼容的概率依赖于 $X$,则整体外部比率未必等于原假设比率;这是一个重大的开放问题,也是一个必要的压力测试场景。
+
+\subsection{步骤 6:在引入 CV 实现之前解释加权分割校准}
+
+设得分函数在训练后固定。对随机对照校准得分 $V_i^{\R}$ 与一个外部得分 $V_j^{\E}$,对校准受试者定义归一化质量
+\[
+\pi_i(x_j)
+=
+\frac{\omega_0(X_i^{\R})}
+{\omega_0(X_j^{\E})+\sum_{\ell\in\mathcal C_1}\omega_0(X_\ell^{\R})},
+\]
+以及
+\[
+\pi_j(x_j)
+=
+\frac{\omega_0(X_j^{\E})}
+{\omega_0(X_j^{\E})+\sum_{\ell\in\mathcal C_1}\omega_0(X_\ell^{\R})}.
+\]
+一个保守的上尾加权分割共形 $p$ 值为
+\[
+p_{j,\mathrm{split}}^{w}
+=
+\pi_j(x_j)
++
+\sum_{i\in\mathcal C_1}\pi_i(x_j)
+\ind(V_i^{\R}\ge V_j^{\E}).
+\tag{11}
+\]
+这是式 (1) 的加权对应物。在已知密度比、加权可交换性与固定得分下,加权共形理论给出协变量偏移下的边际超均匀性 \citep{tibshirani2019weighted,jin2026weighted}。
+
+式 (11) 背后的总体恒等式简单而重要。设
+\[
+G_x(v)=\Pr(V\le v\mid X=x,B=0).
+\]
+则
+\[
+\begin{aligned}
+\Exp_{\R}\{\omega_0(X)\ind(V\le v)\}
+&=\int G_x(v)\frac{f_{\E,0}(x)}{f_{\R}(x)}f_{\R}(x)\,dx\\
+&=\int G_x(v)f_{\E,0}(x)\,dx\\
+&=\Pr_{\E,0}(V\le v).
+\end{aligned}
+\tag{12}
+\]
+因此,加权后的随机对照得分分布代表了兼容外部对照在其自身协变量构成下会有的得分分布。
+
+\subsection{步骤 7:在实际实现中使用交叉验证的共形得分}
+
+单次分割浪费了本就稀缺的随机对照。因此拟采用的实现使用 $K$ 折交叉验证,遵循 CSB 中使用的 CV+ 思想 \citep{zhu2025csb,barber2021jackknife}。
+
+对每个随机对照 $i\in\mathcal C_k$,计算一个折外(out-of-fold)得分
+\[
+V_i
+=s\{\bm Y_i,X_i;\widehat\eta^{(-k)}\}.
+\]
+对每个外部受试者 $j$,在相应的折特定模型下评估:
+\[
+V_j^{(-k)}
+=s\{\bm Y_j,X_j;\widehat\eta^{(-k)}\}.
+\]
+一个自然的加权 CV 秩统计量提议为
+\[
+\widehat p_{j,\mathrm{CV}}^{w}
+=
+\frac{
+\widehat\omega(X_j)
++
+\sum_{k=1}^{K}\sum_{i\in\mathcal C_k}
+\widehat\omega(X_i)
+\ind\{V_i\ge V_j^{(-k)}\}
+}
+{
+\widehat\omega(X_j)
++
+\sum_{i\in\mathcal C}\widehat\omega(X_i)
+}.
+\tag{13}
+\]
+这利用了每一个随机对照进行折外校准,同时防止某个受试者被用其自身训练的模型评估。
+
+式 (13) 是拟采用的工作实现,但其理论地位必须诚实陈述。普通的无权重 CSB CV+ 构造具有一个\emph{保守}的有限样本界,而非精确的分割共形 $\gamma$ 界 \citep{zhu2025csb}。所提出的纵向得分的加权 CV+ 定理并不自动从分割结果得出,而是一项核心的理论任务。因此模拟应包含:
+\begin{itemize}
+    \item 作为有效性基准的 oracle 加权分割共形;
+    \item 实用的加权 CV 统计量 (13);
+    \item 可选地,折特定加权分割 $p$ 值的一个有保证但保守的聚合。
+\end{itemize}
+
+\subsection{步骤 8:保守地筛选}\label{sec:screen}
+
+对按步骤 3 标准化的带符号得分 $V_j=c^{\top}\bm r_j$,其上尾加权 $p$ 值 $\widehat p_{j,\mathrm{hi}}^{w}$ 正是 (13);当外部轨迹异常\emph{偏高}时它小。基础单边筛保留
+\[
+\widehat{\mathcal E}_{\gamma}
+=
+\{j:\widehat p_{j,\mathrm{hi}}^{w}>\gamma\}.
+\tag{14}
+\]
+该阈值是一个保守的兼容性筛选,而非预测区间剔除率;由于加权 $p$ 值具有依赖 $X$ 的非均匀离散支撑,``大于每一个内部残差''是有用的直觉,但并非形式化的加权规则。除 $\gamma$ 外,筛选还有两个设计选择——\emph{方向}、以及 $\gamma$ 是固定还是\emph{自适应}——下面定义。
+
+\paragraph{一次拟合、两条尾。} 互补的下尾 $p$ 值是把上尾统计量作用到负得分上,即把 (13) 中 $\ind\{V_i\ge V_j^{(-k)}\}$ 换成 $\ind\{V_i\le V_j^{(-k)}\}$:
+\[
+\widehat p_{j,\mathrm{lo}}^{w}
+=
+\frac{\widehat\omega(X_j)+\sum_{k=1}^{K}\sum_{i\in\mathcal C_k}\widehat\omega(X_i)\ind\{V_i\le V_j^{(-k)}\}}
+{\widehat\omega(X_j)+\sum_{i\in\mathcal C}\widehat\omega(X_i)},
+\]
+当轨迹异常\emph{偏低}时它小。两条尾来自同一批分折拟合,无需额外拟合模型。
+
+\paragraph{对称双边筛。} 用折叠对比 $|V_j|=|c^{\top}\bm r_j|$ 计分,对 $|V|$ 用 (13),以\emph{单一}阈值保留 $\{j:\widehat p_{j,|V|}^{w}>\gamma\}$。这对两尾等量修剪。留下的 EC 干净时 $V$ 近似关于 $0$ 对称,故等量修剪不改变留存得分均值、借用对照均值无偏;代价是一半删除预算落在方向性污染的\emph{反}侧,降低对它的检出。
+
+\paragraph{非对称双边筛。} 保留带符号得分,用两条尾 $p$ 值配\emph{分设}阈值 $\gamma_{\mathrm{hi}},\gamma_{\mathrm{lo}}$:
+\[
+\widehat{\mathcal E}_{\gamma_{\mathrm{hi}},\gamma_{\mathrm{lo}}}^{\mathrm{ns}}
+=
+\bigl\{j:\ \widehat p_{j,\mathrm{hi}}^{w}>\gamma_{\mathrm{hi}}\ \text{且}\ \widehat p_{j,\mathrm{lo}}^{w}>\gamma_{\mathrm{lo}}\bigr\},
+\]
+即当 $\widehat p_{j,\mathrm{hi}}^{w}\le\gamma_{\mathrm{hi}}$ 或 $\widehat p_{j,\mathrm{lo}}^{w}\le\gamma_{\mathrm{lo}}$ 时删除 EC $j$。高尾砍狠($\gamma_{\mathrm{hi}}$)、低尾砍轻($\gamma_{\mathrm{lo}}$),对准正向位移的污染、同时保留一点低尾修剪。两个特例还原其余:$\gamma_{\mathrm{lo}}{=}0$ 即单边筛 (14),$\gamma_{\mathrm{hi}}{=}\gamma_{\mathrm{lo}}$ 即对称筛的带符号双尾版。
+
+\paragraph{方向偏差。} 在与估计目标相同的对比上做选择,会给借用均值带来一个截断偏差。写 $Z=c^{\top}\bm Y=c^{\top}\widehat m(X)+\widehat s(X)\,V$,故层内 $Z$ 是得分 $V$ 的仿射函数,$\widehat s(X)$ 为标准化尺度。对干净、对称的 $V$ 删去上 $\gamma_{\mathrm{hi}}$、下 $\gamma_{\mathrm{lo}}$,留存均值移动
+\[
+\Exp\bigl[Z\mid\text{留存、干净}\bigr]-\Exp[Z\mid\text{干净}]
+\;\approx\;-\,\widehat s(X)\,\bigl\{q(\gamma_{\mathrm{hi}})-q(\gamma_{\mathrm{lo}})\bigr\},
+\]
+其中 $q(\cdot)$ 是被删分数的尾均值贡献;该移动为负、且随不对称度 $\gamma_{\mathrm{hi}}-\gamma_{\mathrm{lo}}$ 单调。借用对照均值 $\widehat\mu_0$ 偏低就抬高 $\widehat\tau=\widehat\mu_1-\widehat\mu_0$,故估计量带一个正比于 $\gamma_{\mathrm{hi}}-\gamma_{\mathrm{lo}}$ 的正偏差:对称筛为零、轻度不对称很小、激进单边砍很大。上帝筛不受此偏差,因为它按与结局无关的污染标签删除、从不修剪干净 EC;一个既去偏、又不退回对称的软借用变体留待后续工作。
+
+\paragraph{自适应阈值。} 不固定阈值,而是每个数据集选取阈值以最小化借用估计的估计均方误差。在 $(\gamma_{\mathrm{hi}},\gamma_{\mathrm{lo}})$ 的网格 $\mathcal G$ 上(对称筛为一维 $\gamma$ 网格),记 $\widehat\tau(\gamma)$ 为筛选后借用估计、$\widehat\tau_{\mathrm{RCT}}$ 为不借用估计,令
+\[
+\widehat{\mathrm{MSE}}(\gamma)
+=
+\underbrace{\bigl\{\widehat\tau(\gamma)-\widehat\tau_{\mathrm{RCT}}\bigr\}^2}_{\text{插件偏差}^2}
++
+\underbrace{\widehat{\mathrm{Var}}^{\ast}\bigl\{\widehat\tau(\gamma)\bigr\}}_{\text{bootstrap 方差}},
+\qquad
+\gamma^{\ast}=\arg\min_{\gamma\in\mathcal G}\widehat{\mathrm{MSE}}(\gamma),
+\]
+报告 $\widehat\tau(\gamma^{\ast})$。因随机对照估计天生无偏,$\{\widehat\tau(\gamma)-\widehat\tau_{\mathrm{RCT}}\}^2$ 是借用偏差平方的免标签插件,$\widehat{\mathrm{Var}}^{\ast}$ 取自对每个重采样重新筛选的全流程 bootstrap。这即 CSB 的自适应选择原则 \citep{zhu2025csb}。两点诚实的告诫:(i) 该插件还含 $\mathrm{Var}\{\widehat\tau(\gamma)-\widehat\tau_{\mathrm{RCT}}\}$,故高估偏差、偏保守——渐近 MSE 修正会把它减去;(ii) 因 $\gamma^{\ast}$ 在点估计上选出、再在 bootstrap 区间内复用,覆盖率只是经验受控、非可证(要形式保证需嵌套 bootstrap)。固定 $\gamma=0.10$ 配敏感性网格仍是保守默认;自适应规则正是让非对称筛可用的关键,因为它避免了那个激进砍陷阱——大 $\gamma_{\mathrm{hi}}$ 会借上面的方向偏差把表观功效吹起来。
+
+\subsection{步骤 9:筛选后重拟合最终借用估计量}\label{sec:refit}
+
+筛选与估计使用不同的权重与相反的转运方向。
+
+筛选比率约为
+\[
+\omega_0(x)=\frac{f_{\E,0}(x)}{f_{\R}(x)},
+\]
+它使随机校准得分代表兼容的外部协变量。
+
+选择之后,最终的 EC 到 RCT 转运比率为
+\[
+\rho_{\gamma}(x)
+=
+\frac{f_{\R}(x)}{f_{\E,\gamma}(x)},
+\]
+其中 $f_{\E,\gamma}$ 是保留下来的外部对照中的协变量分布。它必须用保留样本重新估计。
+
+对标量纵向对比
+\[
+Z=c^{\top}\bm Y,
+\]
+一个通用的转运增广估计量,针对未治疗试验均值为
+\[
+\widehat\mu_{0,\gamma}^{\E,\mathrm{DR}}
+=
+\frac{1}{n_{\R}}\sum_{i:S_i=1}\widehat m_{0,\gamma}(X_i)
++
+\frac{
+\sum_{j:S_j=0,\,j\in\widehat{\mathcal E}_{\gamma}}
+\widehat\rho_{\gamma}(X_j)
+\{Z_j-\widehat m_{0,\gamma}(X_j)\}
+}
+{
+\sum_{j:S_j=0,\,j\in\widehat{\mathcal E}_{\gamma}}
+\widehat\rho_{\gamma}(X_j)
+}.
+\tag{15}
+\]
+该外部估计可通过 JRSS-A 框架中使用的第二层借用权重与随机对照估计相结合 \citep{zhou2025causal}。治疗均值由随机治疗受试者估计,最终估计为
+\[
+\widehat\tau_{c,\gamma}
+=
+\widehat\mu_{1,c}^{\R}
+-
+\left\{(1-\lambda_\gamma)\widehat\mu_{0,c}^{\R}
++\lambda_\gamma\widehat\mu_{0,\gamma}^{\E,\mathrm{DR}}\right\}.
+\tag{16}
+\]
+式 (15)--(16) 中使用的所有来源、结局、方差与最优借用组件都在筛选后重新拟合。
+
+该构造清晰,但选择后的相合性与方差推断并非自动成立。它们仍是需要通过理论、以及通过对整条流程重抽样来研究的方法学问题。
+
+\section{统一的玩具纵向模型与模拟设计}
+
+本节将解析上可处理的玩具示例与完整的模拟协议合并。它\emph{不}使用以 SUNFISH 校准的参数。目标是在转向现实应用之前先隔离机制。
+
+\subsection{设计总览}
+
+基础 DGP(式 (17)--(22))与下列量固定:$n_{\R,1}=120$、$n_{\R,0}=60$、$n_{\E}=100$、$X$ 无关污染、正确设定的密度比。宽泛的诊断扫描固定 $\pi_B=0.5$ 与 $\gamma=0.10$;而估计的\emph{基准格}(第~\ref{sec:basecell} 节)——其余每次估计运行都与它对照——采用 $\pi_B=0.3$ 配自适应 $\gamma$。模拟只变动下列各轴(破折号后为可选项);后文每个小节详述其中一个轴。
+
+\emph{筛选轴}(诊断;$12\times2\times2\times3\times9=1296$ 个组合):
+\begin{itemize}
+    \item 得分形状 --- 二次型 / 最大 / 对比-$c_1$ / 对比-$c_2$
+    \item 协方差 --- 原始 / 内部 / 分来源
+    \item 加权 --- 加权($\omega_0$)/ 不加权
+    \item 校准 --- 一次性分割 / $K{=}5$ CV+
+    \item 工作模型 --- 正确 / 中度 / 严重
+    \item 漂移形态 --- A 整体 / B 晚期 / C 斜率 / D 分严重度
+    \item 漂移幅度 $\Delta$ --- $0$(原假设)/ $1$ / $3$ / $5$(大,近可分)
+\end{itemize}
+
+\emph{估计另加:}
+\begin{itemize}
+    \item 估计目标 --- $c_1$(末次$-$基线)/ $c_2$(平均)
+    \item 最终方法 --- 仅 RCT / 全借用 EC-AIPW / 上帝(恰好删掉被污染的,天花板)/ 筛选$+$AIPW
+    \item 筛选方向 --- \emph{对称双边}(绝对值 $|c^{\top}\bm r|$,单阈值,两尾等量修剪)/ \emph{非对称双边}(带符号得分,上/下尾分设阈值 $\gamma_{\mathrm{hi}},\gamma_{\mathrm{lo}}$;单边是 $\gamma_{\mathrm{lo}}{=}0$ 的退化角)
+    \item 阈值规则 --- 固定 $\gamma{=}0.10$ / \emph{自适应} $\gamma$(每个数据集选取以最小化估计 MSE)
+\end{itemize}
+
+\emph{DGP 压力变体}(相对基础只改一个 component,用于探稳健性):
+\begin{itemize}
+    \item 漂移幅度 --- 加入 $\Delta{=}5$(大,近可分)
+    \item 残差方差 --- 基础 $\sigma(X){=}(1,1.8)$(随严重度、内外源相同);(i) 匀质 $\sigma{\equiv}1$($X$ 无关、内外源相同);(ii) 内外不同 $\sigma_{\R}{\equiv}1,\ \sigma_{\E}{\equiv}1.8$($X$ 无关),用以压 internal 协方差假设
+\end{itemize}
+
+\emph{哪个切片回答哪个问题}(方法的价值都在 $\Delta>0$):
+\begin{itemize}
+    \item \textbf{筛选能否降低借用偏差、修复覆盖率?}(最终收益)--- 估计,$\Delta=1,3$ 下 方法 $\times$ 场景(表~\ref{tab:estplaceholder})。
+    \item 哪个得分检出污染、检出是否与估计目标对齐? --- $\Delta=3$(弱信号看 $\Delta=1$),形态 A--D,按得分形状看检出。
+    \item 筛选方向权衡? --- 估计,单边 vs 双边,空场景 vs 有污染。
+    \item \emph{特异度与协变量偏移修复}(基线 $+$ 动机,不涉及检出):$\Delta{=}0$ 无漂移,故它只检验筛选是否放过兼容 EC(假排率 $\le\gamma$)、以及加权是否消除协变量偏移造成的过度排除(加权 vs 不加权,严重模型下最明显)。
+\end{itemize}
+
+\emph{两个数据生成过程。} 下文详述的是每个上述结果背后的二值协变量 toy。第~\ref{sec:dgp2} 节另加一个刻意很不一样的第二 DGP——两个协变量(一个连续)+ 与协变量无关的方差——以检验去掉二值分层结构后结论是否仍成立。
+
+\emph{推迟}(后续工作):$X$ 相关污染。(自适应 $\gamma$ 现已实现;连续协变量与真正的密度比估计由第~\ref{sec:dgp2} 节的第二 DGP 提供。)
+
+\subsection{基准场景:参照格}\label{sec:basecell}
+
+后文每一个估计比较都对照唯一的参照格来读,使每次其它运行都只与它相差一个轴。基准格固定:基础 DGP(式 (17)--(22)),$\sigma(X){=}(1,1.8)$ 内外源相同;污染比例 $\pi_B{=}0.3$(借用可能兑现的现实工作点);漂移形态 A(整体位移),$\Delta{=}3$;估计目标 $c_2$(访视平均,$\tau_{c_2}{=}0.4625$);加权一次性分割校准;正确工作模型;internal 协方差;借用方法用\emph{非对称双边带符号对比筛 $+$ 自适应 $\gamma$}(下称 \textbf{nonsym-ada})。两个锚夹住它:\emph{仅 RCT}(不借用、无偏地板)与\emph{上帝}筛(恰好删掉被污染的 EC,不可及的天花板,把``筛选准确度''与``借用价值''分开)。
+
+在此格($500$ 次 Monte-Carlo,$B{=}200$ 次全流程 bootstrap):仅 RCT 功效 $0.63$、RMSE $0.20$;上帝达功效 $0.73$、RMSE $0.18$;nonsym-ada 达功效 $0.69$,type-I $0.076$(与仅 RCT 相同)、RMSE $0.21$、检出 $0.75$、假排 $0.11$、偏差仅 $+0.03$。于是 nonsym-ada 是第一个在保持 type-I 的同时于功效上胜过仅 RCT($+0.07$)的落地筛,走完了 RCT 到上帝差距的约四分之三。本节其余部分先搭出该方法,再从此格一次挪一个轴(表~\ref{tab:refcell})。
+
+\subsection{基础纵向数据生成过程}
+
+使用四个访视
+\[
+t\in\{0,1,2,3\}
+\]
+与一个二值基线严重度协变量 $X$。
+
+随机与外部协变量分布不同:
+\[
+X\mid S=1\sim\mathrm{Bernoulli}(0.30),
+\qquad
+X\mid S=0\sim\mathrm{Bernoulli}(0.70).
+\tag{17}
+\]
+这制造了协变量偏移,但保持了重叠。
+
+对每个随机对照或兼容外部对照,生成未治疗轨迹
+\[
+Y_t(0)
+=
+2+0.5t+X(1+0.4t)+b+\sigma(X)\varepsilon_t,
+\tag{18}
+\]
+其中
+\[
+b\sim N(0,0.5^2),
+\qquad
+\bm\varepsilon\sim N_4(\bm 0,R),
+\qquad
+R_{uv}=0.5^{|u-v|},
+\]
+以及
+\[
+\sigma(0)=1,
+\qquad
+\sigma(1)=1.8.
+\tag{19}
+\]
+因此严重受试者具有不同的均值轨迹与更大的残差变异。
+
+对随机治疗受试者,加上一个治疗效应轨迹
+\[
+\bm\tau=(0,0.25,0.60,1.00)^{\top},
+\qquad
+\bm Y(1)=\bm Y(0)+\bm\tau.
+\tag{20}
+\]
+研究两个估计目标,使同一个漂移在它们上的投影不同:
+\[
+c_1=(-1,0,0,1)^{\top}\ (\text{末次减基线}),
+\qquad
+c_2=(\tfrac14,\tfrac14,\tfrac14,\tfrac14)^{\top}\ (\text{全程平均}),
+\tag{21}
+\]
+真值分别为 $\tau_{c_1}=c_1^{\top}\bm\tau=1.000$、$\tau_{c_2}=c_2^{\top}\bm\tau=0.4625$。随机截距 $b$ 在 $c_1$ 中抵消(因 $c_1^{\top}\bm 1=0$)但在 $c_2$ 中不抵消,故两个对比的残差尺度与信噪比不同,同一漂移可能偏倚其一而不影响另一个。
+
+样本量为
+\[
+n_{\R,1}=120,
+\qquad
+n_{\R,0}=60,
+\qquad
+n_{\E}=100.
+\tag{22}
+\]
+实用筛选使用 $K=5$ 折 CV+;一次性样本分割作为有限样本有效的对照纳入。
+
+\paragraph{方差结构变体。}
+基础 DGP 令残差尺度随严重度变化,$\sigma(0){=}1$、$\sigma(1){=}1.8$,且内外源相同。用两个只改一个 component 的变体考察协方差机制:(i) \emph{匀质},所有受试者、两来源都 $\sigma{\equiv}1$($X$ 无关);(ii) \emph{内外不同},随机对照 $\sigma_{\R}{\equiv}1$、外部对照 $\sigma_{\E}{\equiv}1.8$($X$ 无关)。变体 (ii) 是有的放矢的压力测试:internal 协方差筛用随机对照的协方差去标准化外部得分,故真实存在的内外方差差被错误标准化。两者都不改变估计目标 $\tau_{c_2}{=}0.4625$。
+
+\subsection{为什么普通秩在协变量偏移下失效}
+
+对任何固定的拟合得分,记
+\[
+G_0(v)=\Pr(V\le v\mid X=0,B=0),
+\qquad
+G_1(v)=\Pr(V\le v\mid X=1,B=0).
+\]
+随机对照的边际得分分布为
+\[
+F_{\R}(v)=0.70G_0(v)+0.30G_1(v),
+\tag{23}
+\]
+而兼容外部的边际为
+\[
+F_{\E,0}(v)=0.30G_0(v)+0.70G_1(v).
+\tag{24}
+\]
+若原始或标准化不充分的得分在严重度组间具有不同分布,即 $G_0\neq G_1$,则即便条件结局律在两个来源间相同,也有 $F_{\R}\neq F_{\E,0}$。
+
+对具有 $n_C$ 个随机校准受试者的简单无权重``仅最大''规则,单个兼容外部受试者的假排除概率为
+\[
+\Pr\left(V^{\E}>\max_{1\le i\le n_C}V_i^{\R}\right)
+=
+\int F_{\R}(v)^{n_C}\,dF_{\E,0}(v).
+\tag{25}
+\]
+仅当 $F_{\R}=F_{\E,0}$ 时它才等于 $1/(n_C+1)$。式 (25) 为模拟提供了一个直接的数学目标。
+
+在 oracle 加权下,
+\[
+\omega_0(0)=\frac{0.30}{0.70},
+\qquad
+\omega_0(1)=\frac{0.70}{0.30},
+\tag{26}
+\]
+加权后的随机混合变为
+\[
+F_{\R}^{w}(v)
+=0.30G_0(v)+0.70G_1(v)
+=F_{\E,0}(v).
+\tag{27}
+\]
+即使工作纵向均值模型误设,该等式也成立,因为同样的误设被包含在 $G_0$ 与 $G_1$ 内部。
+
+\subsection{部分外部漂移}
+
+引入一个外部不兼容指示 $B\sim\mathrm{Bernoulli}(\pi_B)$,污染比例固定 $\pi_B=0.5$,独立于 $X$。兼容外部受试者($B=0$)遵循 (18)。不兼容受试者($B=1$)遵循下述四种漂移形态之一,每种都乘以一个幅度 $\Delta$,$\Delta$ 是主要的信噪比旋钮:
+\[
+\Delta\in\{0,1,3,5\}
+\qquad
+(\Delta=0\text{ 即原假设:全部 EC 兼容};\ \Delta=5\text{ 大,近可分}).
+\tag{28}
+\]
+
+\paragraph{A. 整体均值平移。}
+\[
+\bm Y_{\E}(0)=\bm Y_{\mathrm{base}}(0)+\Delta(1,1,1,1)^{\top}.
+\tag{29}
+\]
+
+\paragraph{B. 晚期漂移。}
+\[
+\bm Y_{\E}(0)=\bm Y_{\mathrm{base}}(0)+\Delta(0,0,0,1)^{\top}.
+\tag{30}
+\]
+
+\paragraph{C. 斜率漂移。}
+\[
+\bm Y_{\E}(0)=\bm Y_{\mathrm{base}}(0)+\Delta(0,1/3,2/3,1)^{\top}.
+\tag{31}
+\]
+
+\paragraph{D. 分严重度漂移。}
+\[
+\bm Y_{\E}(0)=\bm Y_{\mathrm{base}}(0)+\Delta X(0,1/3,2/3,1)^{\top}.
+\tag{32}
+\]
+
+\subsection{污染机制与密度比估计}
+
+玩具固定 $\Pr(B=1\mid X)=\pi_B$ 独立于 $X$,故兼容 EC 的协变量分布等于整体外部协变量分布,单一的正确密度比 $\omega_0=f_{\E,0}/f_{\R}$ 即可。这把加权机制与密度比估计误差隔离开。
+
+互补的压力测试——$X$ 相关污染 $\Pr(B=1\mid X)=\operatorname{expit}(\eta_0+\eta_1X)$,此时可估的整体比 $f_{\E}/f_{\R}$ 偏离原假设比 $\omega_0$——留作未来的边缘研究。在单一二值 $X$ 下 logistic 来源模型是饱和的,故各种权重估计(正确 vs 误设的 logistic 来源模型、熵平衡 \citep{hainmueller2012})互相重合、无法区分;要区分它们需要连续协变量,而这由第~\ref{sec:dgp2} 节的第二 DGP 提供。
+
+\subsection{工作结局模型的设定}
+
+使用三个层级的模型质量。
+
+\paragraph{正确的工作均值模型。}
+纳入时间、$X$ 与 $X\times$时间,并配以一个充分的协方差模型。
+
+\paragraph{中度误设。}
+省略 $X\times$时间交互。
+
+\paragraph{严重误设。}
+仅使用时间主效应或一个线性时间趋势,省略严重度效应与非线性轨迹结构。
+
+关键的校准问题是:在误设下,兼容 EC 的假排除是否仍受控。关键的功效问题是:当随机对照残差变得嘈杂时,检测 (29)--(32) 的能力损失多少。
+
+\subsection{非一致性得分:十二种}
+
+残差向量 $\bm r=\bm Y-\widehat m(X)\in\mathbb R^4$ 通过\emph{形状} 与 \emph{协方差处理}的组合收成标量。四种形状:
+\begin{itemize}
+    \item 二次型 $\bm r^{\top}A\bm r$(无符号,综合双边);
+    \item 最大型 $\max_t r_t/a_t$(带符号单边,最差访视);
+    \item 估计目标对齐对比 $c_1^{\top}\bm r$ 与 $c_2^{\top}\bm r$(带符号,每个估计目标一个)。
+\end{itemize}
+三种协方差处理设定 $A$ 与 $a_t$:
+\begin{itemize}
+    \item 原始($A=I$,$a_t=1$);
+    \item 公共内部($A=\widehat\Sigma_{\R}^{-1}$,$a_t=\widehat\sigma_{\R,t}$);
+    \item 分来源(随机点用 $\widehat\Sigma_{\R}$,外部点用 $\widehat\Sigma_{\E}$,后者从可能被污染的 EC 池估计)。
+\end{itemize}
+四形状 $\times$ 三处理 $=$ 十二种得分。二次型天生无符号;最大型与对比带符号。筛选\emph{方向}控制着一个估计选择偏差,而这是个二维选择,不是二选一。\emph{对称双边}筛用绝对值对比 $|c^{\top}\bm r|$ 配单一阈值,对(干净)得分分布两尾等量修剪;干净时无偏,但把一半删除预算花在没有方向性污染的那一侧。\emph{非对称双边}筛保留带符号得分,算两个共形 $p$ 值——上尾 $p_{\mathrm{hi}}$(得分异常高时小)与下尾 $p_{\mathrm{lo}}$(异常低时小,即 $-c^{\top}\bm r$ 的上尾)——当 $p_{\mathrm{hi}}\le\gamma_{\mathrm{hi}}$ \emph{或} $p_{\mathrm{lo}}\le\gamma_{\mathrm{lo}}$ 时删除该 EC,两个阈值\emph{分设}。把高尾砍狠($\gamma_{\mathrm{hi}}$)、低尾砍轻($\gamma_{\mathrm{lo}}$),对准方向性(A 型)污染,同时只部分抵消选择偏差;早先的``带符号单边''是 $\gamma_{\mathrm{lo}}{=}0$ 的退化角,对称筛约为 $\gamma_{\mathrm{hi}}{=}\gamma_{\mathrm{lo}}$。它留下的残余正偏差在结果中分析。
+
+\paragraph{协方差怎么估,以及两个后果。}
+$\widehat\Sigma_{\R}$ 与 $\widehat\Sigma_{\E}$ 都\emph{分严重度层}估计(两层噪声尺度不同),分别取随机对照残差、外部对照残差(二者都相对\emph{同一个}随机对照均值模型 $\widehat m$)的样本协方差,加一个极小 ridge 保证可逆,某层不足四人时退回用全体的协方差。原始处理用单位阵;内部处理用 $\widehat\Sigma_{\R}$ 标准化所有点;分来源处理用 $\widehat\Sigma_{\R}$ 标准化随机点、$\widehat\Sigma_{\E}$ 标准化外部点,从而把两来源间纯粹的方差/相关差异白化掉。模拟中出现两个后果:(i) 只有二次型需要对整个 $4\times4$ 矩阵求逆,而用约 15 个严重层随机对照估的内部协方差,其逆很不稳,得分严重过度排除(假排率 $\approx0.20$)——需要收缩或正则化协方差;原始(不求逆)、最大(只用对角)、对比(一维二次型)则稳定。(ii) 在 $\pi_B=0.5$ 下,分来源的 $\widehat\Sigma_{\E}$ 从半被污染的池子估计,漂移把它抬高、缩小外部得分,使分来源筛选过保守(检出更低)。
+
+\subsection{方法}
+
+参照方法,加一族筛选估计量:
+\begin{itemize}
+    \item \textbf{仅 RCT}:不借用(无偏地板)。
+    \item \textbf{全借用 EC-AIPW}:借用全部 EC(不筛选),转运 AIPW。
+    \item \textbf{上帝}:恰好删掉被污染的 EC($B{=}1$);不可及的天花板,用以把任何差距分解为``筛选''还是``借用本身''所致。
+    \item \textbf{筛选 + AIPW}:保留通过筛选的 EC,再转运 AIPW,交叉:加权(加权 $\omega_0$ vs 不加权)、校准(一次性分割 vs $K=5$ CV+)、上述十二种得分,以及——对对比得分——方向(对称 vs 非对称)与阈值规则(固定 vs 自适应)。
+\end{itemize}
+
+\paragraph{方向与自适应 $\gamma$。}
+筛选方向(对称 vs 非对称双边)与自适应阈值规则在步骤 8(第~\ref{sec:screen} 节)正式定义:每个数据集的阈值在小网格上最小化估计 MSE $\{\widehat\tau(\gamma)-\widehat\tau_{\mathrm{RCT}}\}^2+\widehat{\mathrm{Var}}^{\ast}\{\widehat\tau(\gamma)\}$,以无偏的仅 RCT 估计为偏差锚、且不用污染标签。诊断表报告各得分/权重/校准组合的筛选性能;估计表报告基准格(第~\ref{sec:basecell} 节)及其单轴变体。
+
+\subsection{诊断性能指标}
+
+对受试者层面的筛选,报告:
+\[
+\text{兼容 EC 中的假排除率},
+\]
+\[
+\text{不兼容 EC 中的真排除率},
+\]
+\[
+\text{被排除 EC 中的错误发现比例},
+\]
+\[
+\text{保留比例},
+\qquad
+\text{有效保留 EC 样本量}.
+\]
+由于所有外部 $p$ 值共享随机对照折,还应报告至少排除一个兼容受试者的概率,以及被排除总数的分布。个体的边际校准本身并不蕴含族系或错误发现率的控制 \citep{bates2023outliers}。
+
+\subsection{治疗效应估计指标}
+
+对 $\widehat\tau_{c,\gamma}$,报告:
+\[
+\text{偏差},\quad
+\text{经验标准差},\quad
+\text{平均估计标准误},
+\]
+\[
+\text{RMSE},\quad
+95\%\text{ 置信区间覆盖率},\quad
+\text{第一类错误与功效(在适用处)}.
+\]
+还应报告选择后的协变量平衡与最终的 EC 有效样本量。
+
+\subsection{模拟结果}
+
+表~\ref{tab:diagplaceholder} 报告筛选诊断,表~\ref{tab:estplaceholder} 报告下游估计。二者的设定见各自表注;它们是下文解读的具体依据。
+
+\begin{table}[ht]
+\centering
+\caption{筛选诊断($n_{\mathrm{sim}}=500$;$n_{\R,0}=60$、$n_{\E}=100$、$\pi_B=0.5$、$\gamma=0.10$;加权 CV+ 筛选,正确工作模型,内部标准化协方差)。``空场景假排率''为 $\Delta=0$ 时兼容 EC 的假排除率(目标 $\le 0.10$)。``检出''为各漂移形态在 $\Delta=3$ 时被排除的污染 EC 比例。各行为四种得分形状。}
+\begin{tabular}{lcccc}
+\toprule
+得分形状 & 空场景假排率 & 检出 A & 检出 B & 检出 C \\
+\midrule
+对比 $c_1$(末次减基线) & 0.087 & 0.081 & 0.527 & 0.530 \\
+对比 $c_2$(全程平均)   & 0.085 & 0.802 & 0.228 & 0.432 \\
+最大(最差访视)         & 0.104 & 0.769 & 0.495 & 0.556 \\
+二次型(马氏)           & 0.201 & 0.677 & 0.619 & 0.541 \\
+\bottomrule
+\end{tabular}
+\label{tab:diagplaceholder}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\caption{估计,每格为\emph{偏差(覆盖率)}($n_{\mathrm{sim}}=400$,百分位 CI 来自 $B=200$ 次整流程自助;加权 CV+ 筛选,估计目标对齐的内部标准化对比,正确模型,$\gamma=0.10$,$\pi_B=0.5$)。真值 $\tau_{c_1}=1.000$、$\tau_{c_2}=0.4625$。空场景为 $\Delta=0$;晚期漂移 B 与与 $c_1$ 正交的平移 A 在 $\Delta=3$。``单边''/``双边''为单侧/双侧对比筛选。}
+\begin{tabular}{llcccc}
+\toprule
+场景 & 估计目标 & 仅 RCT & 全借用 & 筛选(单边) & 筛选(双边) \\
+\midrule
+空($\Delta{=}0$) & $c_1$ & $0.01\,(.95)$ & $0.02\,(.94)$ & $0.19\,(.85)$ & $0.02\,(.95)$ \\
+空($\Delta{=}0$) & $c_2$ & $0.01\,(.94)$ & $0.01\,(.94)$ & $0.13\,(.88)$ & $0.00\,(.93)$ \\
+晚期 B & $c_1$ & $0.00\,(.93)$ & $-0.63\,(.42)$ & $-0.06\,(.94)$ & $-0.28\,(.85)$ \\
+晚期 B & $c_2$ & $0.00\,(.93)$ & $-0.22\,(.75)$ & $-0.03\,(.96)$ & $-0.16\,(.87)$ \\
+正交 A & $c_1$ & $0.01\,(.91)$ & $0.00\,(.94)$ & $0.18\,(.85)$ & $0.00\,(.94)$ \\
+正交 A & $c_2$ & $-0.01\,(.93)$ & $-0.50\,(.45)$ & $0.03\,(.94)$ & $-0.11\,(.92)$ \\
+\bottomrule
+\end{tabular}
+\label{tab:estplaceholder}
+\end{table}
+
+\subsection{原子级单轴比较}
+
+每一行只变动一个轴、其余全部固定(每块表头写明固定配置),因此对应一个直接比较。数值是左列所指的指标;蒙特卡洛标准误在比率上 $\approx 0.01$、在偏差上 $\approx 0.02$。
+
+\begin{longtable}{p{0.30\textwidth}p{0.36\textwidth}p{0.28\textwidth}}
+\toprule
+只变一个轴(其余固定) & 结果 & 结论 \\
+\midrule
+\endhead
+\multicolumn{3}{@{}l}{\textbf{加权} --- 固定:对比 $c_1$、内部协方差、CV+} \\
+严重模型,$\Delta{=}0$,假排率 & 加权 0.085 \; 不加权 0.149 & 误设下加权把误伤减半 \\
+max 得分,严重,$\Delta{=}0$,假排率 & 加权 0.104 \; 不加权 0.208 & 对 max 是 $2\times$ 效果 \\
+正确模型,$\Delta{=}0$,假排率 & 加权 0.087 \; 不加权 0.102 & 模型好时加权几乎多余 \\
+严重,C,$\Delta{=}3$,检出 & 加权 0.525 \; 不加权 0.660 & 但加权牺牲检出 --- 这是它的代价 \\
+\midrule
+\multicolumn{3}{@{}l}{\textbf{校准} --- 固定:对比 $c_1$、内部、加权} \\
+正确,$\Delta{=}0$,假排率 & CV+ 0.087 \; 分割 0.074 & 分割更保守 \\
+正确,C,$\Delta{=}3$,检出 & CV+ 0.530 \; 分割 0.453 & 分割浪费数据、丢检出 \\
+\midrule
+\multicolumn{3}{@{}l}{\textbf{协方差} --- 固定:加权、CV+、正确模型} \\
+二次型,$\Delta{=}0$,假排率 & raw 0.076 \; 内部 0.201 \; 分来源 0.090 & 马氏用插件内部协方差崩坏 \\
+对比 $c_1$,B,$\Delta{=}3$,检出 & 内部 0.527 \; 分来源 0.383 & 分来源过保守($\widehat\Sigma_{\E}$ 被污染) \\
+对比 $c_1$,$\Delta{=}0$,假排率 & raw 0.084 \; 内部 0.087 \; 分来源 0.079 & 对比自标准化,协方差几乎无影响 \\
+\midrule
+\multicolumn{3}{@{}l}{\textbf{得分形状} --- 固定:内部、加权、CV+、正确、$\Delta{=}3$、检出} \\
+形态 A(整体) & $c_1$ 0.081 \; $c_2$ 0.802 \; max 0.769 \; quad 0.677 & $c_1$ 全盲(A $\perp c_1$);其余可检 \\
+形态 B(晚期) & $c_1$ 0.527 \; $c_2$ 0.228 \; max 0.495 & $c_1$ 最好(B 对齐 $c_1$) \\
+形态 C(斜率) & $c_1$ 0.530 \; $c_2$ 0.432 \; max 0.556 & max 略胜 \\
+形态 D(严重度) & $c_1$ 0.315 \; max 0.347 \; quad 0.363 & 全弱(仅 severe 层漂移,难) \\
+\midrule
+\multicolumn{3}{@{}l}{\textbf{模型质量} --- 固定:对比 $c_1$、内部、加权、CV+} \\
+$\Delta{=}0$,假排率 & 正确 0.087 \; 中度 0.085 \; 严重 0.085 & 校准跨误设几乎不动 \\
+C,$\Delta{=}3$,检出 & 正确 0.530 \; 中度 0.525 \; 严重 0.525 & 检出也几乎不动 \\
+\midrule
+\multicolumn{3}{@{}l}{\textbf{信号 $\Delta$} --- 固定:对比 $c_1$、内部、加权、CV+、正确、检出} \\
+形态 C & $\Delta{=}1$: 0.194 \; $\Delta{=}3$: 0.530 & 检出随信号约三倍增 \\
+形态 B & $\Delta{=}1$: 0.194 \; $\Delta{=}3$: 0.527 & 同 \\
+\midrule
+\multicolumn{3}{@{}l}{\textbf{估计方法} --- 固定:估计目标 $c_1$} \\
+空场景,RMSE & 仅RCT 0.289 \; 全借用 0.236 \; 筛选双边 0.254 & EC 干净就借;筛选紧随 \\
+B,$\Delta{=}3$,偏差 & 全借用 $-0.625$ \; 单边 $-0.064$ \; 双边 $-0.281$ & 全借用崩;单边筛选几乎修好 \\
+空场景,偏差 & 单边 $+0.191$ \; 双边 $+0.015$ & 单边空场景有偏,双边无偏 \\
+\midrule
+\multicolumn{3}{@{}l}{\textbf{估计目标} --- $c_1$ vs $c_2$} \\
+A,$\Delta{=}3$,全借用,偏差 & $c_1$ $+0.003$ \; $c_2$ $-0.497$ & A 偏 $c_2$ 不偏 $c_1$(A $\perp c_1$) \\
+B,$\Delta{=}3$,单边筛选,覆盖率 & $c_1$ 0.938 \; $c_2$ 0.955 & 都达标 \\
+\bottomrule
+\end{longtable}
+
+\subsection{基准格结果:方向、自适应 $\gamma$ 与 DGP 压力}
+
+表~\ref{tab:refcell} 每一行都对照参照格(第~\ref{sec:basecell} 节)读;基础之下每块只改一个 component。``检出''为污染 EC 中被删的比例,``假排''为兼容 EC 中被删的比例;$500$ 次重复,$B{=}200$ 次 bootstrap。
+
+\begin{table}[ht]
+\centering
+\caption{参照格与单轴变体($\pi_B{=}0.3$、形态 A、估计目标 $c_2$、$\tau_{c_2}{=}0.4625$、加权一次性分割、正确模型、internal 协方差)。\textbf{sym-ada}/\textbf{nonsym-ada} 为对称/非对称双边筛配自适应 $\gamma$;\textbf{nonsym-fix} 为固定的激进非对称砍($\gamma_{\mathrm{hi}}{=}0.30,\gamma_{\mathrm{lo}}{=}0.05$)。Type-I 取 $\Delta{=}0$;其余列取所示 $\Delta$。}
+\begin{tabular}{llcccccc}
+\toprule
+设定 & 方法 & 检出 & 假排 & 偏差 & RMSE & Type-I & 功效 \\
+\midrule
+\multicolumn{8}{@{}l}{\textbf{基准格} --- $\Delta{=}3$,$\sigma(X){=}(1,1.8)$} \\
+ & 仅 RCT              & ---    & ---    & $-0.00$ & $0.20$ & $0.076$ & $0.626$ \\
+ & 上帝                & $1.00$ & $0.00$ & $-0.00$ & $0.18$ & $0.058$ & $0.730$ \\
+ & sym-ada             & $0.74$ & $0.15$ & $-0.05$ & $0.21$ & $0.050$ & $0.490$ \\
+ & nonsym-fix          & $0.94$ & $0.29$ & $+0.25$ & $0.34$ & $0.192$ & $0.922^{\dagger}$ \\
+ & \textbf{nonsym-ada} & $0.75$ & $0.11$ & $+0.03$ & $0.21$ & $0.076$ & $\mathbf{0.694}$ \\
+\midrule
+\multicolumn{8}{@{}l}{\textbf{$\Delta{=}5$} --- 漂移更大,余同基准} \\
+ & 仅 RCT              & ---    & ---    & $-0.00$ & $0.20$ & $0.052$ & $0.632$ \\
+ & 上帝                & $1.00$ & $0.00$ & $+0.00$ & $0.18$ & $0.074$ & $0.736$ \\
+ & nonsym-ada          & $0.95$ & $0.12$ & $+0.05$ & $0.20$ & $0.052$ & $0.736$ \\
+\midrule
+\multicolumn{8}{@{}l}{\textbf{匀质} $\sigma{\equiv}1$($X$ 无关、内外源相同)} \\
+ & 仅 RCT              & ---    & ---    & $+0.01$ & $0.18$ & $0.064$ & $0.782$ \\
+ & 上帝                & $1.00$ & $0.00$ & $+0.00$ & $0.17$ & $0.076$ & $0.808$ \\
+ & nonsym-ada          & $0.92$ & $0.13$ & $+0.06$ & $0.19$ & $0.064$ & $0.780$ \\
+\midrule
+\multicolumn{8}{@{}l}{\textbf{内外不同} $\sigma_{\R}{=}1,\sigma_{\E}{=}1.8$($X$ 无关)} \\
+ & 仅 RCT              & ---    & ---    & $+0.01$ & $0.17$ & $0.068$ & $0.756$ \\
+ & 上帝                & $1.00$ & $0.00$ & $+0.01$ & $0.17$ & $0.072$ & $0.778$ \\
+ & nonsym-ada          & $0.83$ & $0.24$ & $+0.07$ & $0.19$ & $0.072$ & $0.746$ \\
+\bottomrule
+\end{tabular}
+\label{tab:refcell}
+\end{table}
+
+\noindent$^{\dagger}$虚高:固定激进砍把干净高尾也过度删除,功效被一个 $+0.25$ 的选择偏差撑高,type-I 达 $0.19$,并不达标。
+
+\paragraph{读法。}
+(1) \emph{非对称加自适应是赢家。} 基准格上,自适应对称筛功效 $0.49$;非对称自适应达 $0.69$、type-I 持平,走完 RCT 到上帝差距的约 $74\%$——第一个胜过仅 RCT 的落地筛。固定激进非对称砍是陷阱:看着强($0.92$),但那是 $+0.25$ 偏差的假象,type-I 达 $0.19$。自适应 $\gamma$ 是安全阀。
+(2) \emph{检出受本质重叠限制。} 加大漂移($\Delta{=}5$)或抹掉严重层的超额方差(匀质)把检出抬到 $0.92$--$0.95$,且 $\Delta{=}5$ 时 nonsym-ada 追平上帝——证实基准格 $0.75$ 的检出天花板是本质重叠,而非估计噪声。
+(3) \emph{RCT 越吵,借用越值钱。} 高噪声格里 nonsym-ada 明显胜仅 RCT(基准 $+0.07$、$\Delta{=}5$ $+0.10$),但 RCT 本已精确时(匀质、内外不同)只打平或微输:上帝处处胜仅 RCT,但那点薄头顶空间被筛子的残余偏差与假排抹掉。
+(4) \emph{internal 协方差对内外方差差脆弱。} EC 真比随机对照更吵时(内外不同),internal 协方差筛错误标准化外部得分,假排翻倍到 $0.24$,把 nonsym-ada 拖到仅 RCT 之下。
+
+\subsection{主要结论}
+
+\begin{enumerate}
+    \item \textbf{借用是双刃剑,筛选是保险。} EC 真兼容时借用把误差压到低于仅 RCT;被污染时不加甄别地全借则严重有偏、覆盖率失效。筛选封住这个下行、保住干净时的增益——但它看不见的污染就抓不住。
+    \item \textbf{加权必需、有效,但有代价。} 协变量偏移下,不加权的筛选会冤枉删掉过度代表的严重层里的兼容 EC;加权恢复校准。它在工作模型差时最要紧(模型好时得分自标准化),并会略降检出——因为保护严重层也庇护了污染的严重 EC。
+    \item \textbf{得分要对准估计目标。} 与估计目标对齐的对比得分,只对偏倚\emph{该}估计目标的污染报警、并正确忽略与之正交的漂移;综合(全轨迹)得分则什么都报警、把对目标无害的 EC 也多删。两个估计目标下,同一漂移偏其一不偏其二,而对齐得分只看相关的那个。
+    \item \textbf{两个配置教训。}(a) 别用马氏(二次型)得分配插件协方差——小样本求逆破坏校准,须正则化。(b) 筛选方向是对称双边(干净时无偏、抗定向污染弱)与单边(检出强、干净时有偏)之间的真权衡。\emph{非对称双边筛 $+$ 自适应 $\gamma$} 衔接两者——上/下尾分设阈值给出类单边的检出,而轻的下尾砍与 MSE 最优调参把偏差压小(第~\ref{sec:basecell} 节、表~\ref{tab:refcell})——它是被带入后续的方法,代价是一点残余正偏差。
+    \item \textbf{约束性天花板是信噪比,不是算法。} 污染能否检出,由漂移相对残差变异的大小决定;小漂移——尤其在高方差的严重层——在任何阈值下都查不出、留下残余偏差。故方法针对\emph{可识别的}污染子集,不应声称抓住一切不兼容。
+\end{enumerate}
+
+\subsection{当前实验暴露的开放问题}
+
+基准格实验暴露的问题比任何单一调参更根本。
+\begin{enumerate}
+    \item \textbf{在估计目标方向上做选择,就会偏倚该估计目标。} 要检出偏倚 $c^{\top}\bm\tau$ 的污染,筛子必须在 $c^{\top}\bm r$ 上排名,而对同一得分的任何非对称修剪都会截断干净 EC 的结局分布:高尾砍得比低尾狠,留下的干净均值偏低,于是 $\widehat\mu_0$ 偏低、$\widehat\tau$ 偏高。所得正偏差正比于阈值不对称度 $\gamma_{\mathrm{hi}}-\gamma_{\mathrm{lo}}$(基准格 $\approx{+}0.03$,激进固定砍 ${+}0.25$,对称砍 $\approx0$),而上帝不偏只因它从不修剪干净 EC。自适应 $\gamma$ 最小化 MSE 而非偏差,故它有意保留一点正偏差。这张力是内在的:对\emph{同一}对比的定向检出与无偏估计相冲突。按层的校准纠偏在此 toy 里能消掉它,但不可推广到单个二值协变量之外,故不采纳。
+    \item \textbf{相对仅 RCT 的增益依赖场景。} 只有随机对照噪声大/欠功效时借用才实质有用——这正是小样本外部对照的目标场景;RCT 本已精确时,上帝的优势很小,筛子的瑕疵就把它抹掉。
+    \item \textbf{检出受本质重叠限制,而非估计噪声。} 给筛子\emph{真}均值与\emph{真}方差,检出不升、假排不降;只有加大漂移或缩小残差尺度才行。故更好的 nuisance 估计(收缩、CV+)对准确率是死路;唯一没用上的信息是污染在众多 EC 间\emph{共享}(混合/池信号),那是另一条、未测、且可能不可推广的路。
+    \item \textbf{按层的机器不能推广到二值 $X$ 的 toy 之外。} internal 协方差对内外方差差脆弱(假排翻倍),更广地,按层协方差标准化与任何按层纠偏都依赖那单个二值协变量。连续或多协变量时它们需要一个条件方差模型与可推广的纠偏;协变量偏移\emph{加权}靠密度比可迁移,但方差那套机器不行。
+    \item \textbf{推断与跨场景覆盖仍待落定。} 自适应 $\gamma$ 的区间复用点估计选出的阈值,而非在每次 bootstrap 内重选,故其 type-I 只是经验(而非可证)受控;且胜出的筛子尚未在漂移形态 B/C/D 与各污染比例上做压力测试,其推广性未经验证。
+\end{enumerate}
+
+\subsection{第二个数据生成过程:两个协变量与同方差}\label{sec:dgp2}
+
+上面的二值 toy 解析透明,但吃单个二值协变量:按层协方差、按层权重、以及分层折叠的转运估计量都靠两个格子。前面的开放问题把这点列为主要的可推广性隐患。一个刻意与第一个\emph{很不一样}的第二 DGP 来处理它。
+
+\paragraph{两个协变量。} 每个受试者带一个二值严重度协变量 $X_b$ 与一个连续协变量 $X_c$(如一个基线生物标志物);两者都在两源间偏移:
+\[
+X_b\mid S{=}1\sim\mathrm{Bernoulli}(0.30),\quad X_b\mid S{=}0\sim\mathrm{Bernoulli}(0.70);
+\qquad
+X_c\mid S{=}1\sim N(0,1),\quad X_c\mid S{=}0\sim N(0.6,1).
+\]
+连续偏移取中等(均值差 $0.6$)以保重叠;极端密度比权重做截断。
+
+\paragraph{同方差——以及为什么。} 残差尺度不再依赖任何协变量:
+\[
+Y_t(0)=2+0.5t+X_b(1+0.4t)+X_c(0.7+0.3t)+b+\sigma\,\varepsilon_t,
+\qquad
+b\sim N(0,0.5^2),\ \bm\varepsilon\sim N_4(\bm 0,R),\ \sigma=1,
+\]
+故残差协方差 $\Sigma=0.25\,\bm 1\bm 1^{\top}+\sigma^2 R$ 是\emph{单一}的 $4\times4$ 矩阵,从全体对照一次估出。这是有意为之:让方差与协变量无关,就\emph{按构造}消掉了按层协方差那套机器——以及它对内外方差差的脆弱(表~\ref{tab:refcell})——从而连续协变量只让\emph{加权}与\emph{估计量}变复杂,而不碰打分那一层。治疗效应 $\bm\tau$、估计目标 $c_1,c_2$、污染形态 A--D 均不变。
+
+\paragraph{两种互补的失准机制。} 在正确均值模型下,残差为 $b+\sigma\varepsilon$,与两个协变量都无关,故不加权的秩本就校准、加权是空操作——与二值 toy 不同(那里随严重度变的方差即使在正确模型下也让普通秩失准)。这里协变量偏移失准只在\emph{误设}下出现,即残差留下一个有偏移的协变量。于是两个 DGP 演练互补的机制——方差驱动(二值 toy)与误设驱动(本 DGP)——合起来表明加权两种病都治。
+
+\paragraph{两协变量的误设阶梯。} 重新定义,使三档都真误设、互不塌陷:
+\begin{itemize}
+    \item \emph{正确}:时间、$X_b$、$X_c$、以及两个协变量$\times$时间交互;
+    \item \emph{中度}:略去两个$\times$时间交互,故残差留下各协变量效应中随时间变化的部分;
+    \item \emph{严重}:再整体略去 $X_c$,故残差留下 $(0.7+0.3t)X_c$。因 $X_c$ 在两源间偏移,这正是必须靠\emph{连续}密度比加权来恢复校准的情形。
+\end{itemize}
+
+\paragraph{密度比:现在是真正的估计对象。} 单一二值协变量时 logistic 来源模型饱和,oracle 与估计权重重合。有了 $(X_b,X_c)$,原假设密度比 $\omega_0(x)=f_{\E,0}(x)/f_{\R}(x)$ 是真正的函数,在所述分布下有闭式(伯努利比乘高斯比)可作 oracle 基准,而实用权重由 logistic 来源模型 $\Pr(S{=}0\mid X_b,X_c)$ 估计。这正是二值 toy 推迟的密度比估计研究;其估计误差与权重截断的影响都变得可测。
+
+\paragraph{估计量:一般的转运 AIPW。} 二值 toy 的分层折叠估计量在此不适用。本 DGP 直接用步骤 9(第~\ref{sec:refit} 节)的一般双稳健估计量:对对照对比拟合一个结局回归 $\widehat m_0(X_b,X_c)$,用连续比转运到随机协变量分布、并以留存 EC 的加权残差增广,再通过反方差借用权 $\lambda$ 与随机对照估计合并。二值 toy 的按层估计量是其"回归与转运退化为两格"的特例。
+
+\paragraph{它检验什么。} 固定筛子(单一 $\Sigma$、连续 $\omega$、非对称双边、自适应 $\gamma$),运行变动 模型质量 $\times$ 加权 $\times$ 估计目标,问两件事:严重误设下(被略去的、有偏移的 $X_c$ 本会让筛子失准),连续密度比加权能否恢复假排控制;以及去掉二值 $X$ 的分层结构后,一般 AIPW 是否还保住基准格的结论——随机对照噪声大时非对称自适应筛胜过仅 RCT。若答案为是,就说明方法不是 toy 的产物。
+
+\section{对预期模拟模式的解读}
+
+该模拟旨在回答具体问题,而非仅仅对方法排名。
+
+\paragraph{加权排序能否修复协变量构成造成的假警报?}
+在 (17)--(19) 下且无结局漂移时,普通秩可能过度排除,因为高方差的严重受试者在外部更常见。Oracle 加权秩应恢复兼容的外部得分混合。估计权重的表现则显示密度比估计的实际代价。
+
+\paragraph{共形排序能否抵御结局模型误设?}
+对兼容 EC,随机与外部得分在给定 $X$ 条件下继承相同的工作模型误差。因此即使工作均值模型错误,oracle 加权秩校准也应保持稳定。直接固定残差阈值对同样的误设应敏感得多。检测功效则仍可能下降。
+
+\paragraph{标准化移除了什么?}
+若内部尺度模型充分,内部标准化能降低 $X$ 依赖。分来源标准化能进一步移除纯粹的协方差尺度差异,但可能掩盖临床上相关的变异变化或外部污染。
+
+\paragraph{得分是否与估计目标对齐?}
+在整体均值平移(场景 A)下,漂移 $\Delta(1,1,1,1)^{\top}$ 与末次减基线对比 $c=(-1,0,0,1)^{\top}$ 正交,因此全轨迹得分可能拒绝许多 EC,而主要均值对比仍无偏。对比特定得分应更不敏感。该比较量化了筛查一个比 $\tau_c$ 所需更强的兼容性概念的代价。
+
+\paragraph{若不兼容 EC 出现在特定协变量层?}
+在 $X$ 相关污染下(留作未来边缘研究),可估的整体外部密度比可能不等于正确的原假设比率,加权筛选可能需要更精巧的原假设密度比估计策略。当前玩具固定 $X$ 无关污染,以把加权机制与该问题隔离开。
+
+\section{开放的顾虑与理论任务}
+
+\subsection{筛选并非条件分布相等的证明}
+
+逻辑陈述必须保持明确:
+\[
+\text{条件分布兼容}
+\Longrightarrow
+\text{对任何固定得分兼容},
+\]
+但
+\[
+\text{通过某一个基于得分的筛选}
+\not\Longrightarrow
+\text{条件分布兼容}.
+\]
+该方法就残差轨迹与随机对照的兼容性筛查 EC。当不兼容通过所选得分显现时,它能减少偏差。它可能漏掉平滑或方向正交的漂移,也可能检出不使主要均值估计目标产生偏差的方差差异。
+
+\subsection{加权 CV 的有效性}
+
+加权分割共形在加权可交换性下有清晰的 oracle 基础。实用的加权 CV 统计量 (13) 使用了更多数据,但需要一个单独的有限样本或渐近有效性结果。CSB 中的无权重 CV+ 界是保守的,且在密度比加权后不会自动保持。
+
+\subsection{估计原假设密度比}
+
+理论上相关的比率是兼容 EC 相对随机对照的协变量分布。若不兼容依赖于 $X$,该比率是潜在的。用整个 EC 池估计它可能污染校准。可能的未来方向包括迭代筛选与再估计、稳健密度比估计、混合建模,或以整体比率与原假设比率之差为指标的敏感性分析。
+
+\subsection{小的随机对照样本}
+
+在随机对照很少时,$p$ 值是离散的,尾部秩不稳定,协方差估计困难。交叉验证改善了数据利用,但使精确保证复杂化。重复分割或聚合可能改善稳定性,而对轨迹得分可能需要收缩协方差模型。
+
+\subsection{多个外部受试者}
+
+各个共形 $p$ 值是相依的,因为它们共享同一随机对照参照与拟合模型。对一个初始方法,一个保守的诊断阈值或许可以接受;但正式的 FDR 或族系保证需要为共形 $p$ 值设计的多重检验方法 \citep{bates2023outliers,jin2026weighted}。
+
+\subsection{结局依赖的筛选与最终推断}
+
+筛选之后,所有讨厌参数(nuisance)模型与转运权重都被重新拟合。尽管如此,保留集仍依赖于观测到的结局。标准的外部对照 AIPW 渐近论不能在不研究该选择步骤的情况下被直接引用。所需工作包括:
+\begin{itemize}
+    \item 在保守阈值下的相合性;
+    \item 假纳入与假排除对偏差的影响;
+    \item 重复整条筛选与重拟合流程的方差估计;
+    \item 自助、样本分割与基于随机化的推断之间的比较。
+\end{itemize}
+
+\subsection{缺失与观测过程的兼容性}
+
+真实世界纵向记录可能有不同的访视安排与脱落机制。此时残差得分可能诊断的是观测过程的差异,而非潜在结局轨迹的差异。第一个模拟可以假设完整的、按计划采集的数据,但扩展必须把结局兼容性与缺失兼容性区分开。
+
+\subsection{全局小漂移 vs 个体离群}
+
+受试者层面的秩天然适合于一个明显不兼容的 EC 子集。若每个 EC 都在同一方向上有一个小的平移,个体残差可能都不极端,然而聚合的借用偏差却可能重要。一个完整的框架可能同时需要个体筛选与一个全局的条件分布或均值平移诊断。
+
+\section{目前站得住的主张}
+
+以下陈述在现阶段是可辩护的:
+\begin{enumerate}
+    \item 倾向得分修剪针对基线协变量重叠,而残差秩筛选通过所选得分针对结局兼容性。
+    \item 协变量重叠不要求随机与外部协变量分布相等。
+    \item 当协变量分布不同且得分分布依赖 $X$ 时,普通残差秩可能失准。
+    \item Oracle 加权校准能在协变量偏移下恢复兼容的外部得分分布。
+    \item 相对直接固定残差阈值,秩校准降低了对结局模型正确性的依赖;模型质量仍影响功效。
+    \item 纵向得分使筛选能够针对一个临床对比或更宽泛的轨迹特征。
+    \item 在理想的公共标准化误差模型下,分来源协方差标准化能避免仅因协方差不同而排除 EC;它改变了诊断目标并使共形理论复杂化。
+    \item 筛选并不验证因果可交换性或完全的条件分布相等。
+\end{enumerate}
+
+以下陈述尚未确立,应作为研究问题提出:
+\begin{enumerate}
+    \item 所提出的加权 CV 秩统计量的精确有限样本有效性;
+    \item 在 $X$ 相关污染下对兼容 EC 密度比的可靠估计;
+    \item 重拟合纵向 EC-AIPW 估计量的选择后相合性与有效标准误;
+    \item 针对某个特定纵向估计目标的最优得分与阈值;
+    \item 在给定应用中,协方差差异应被筛除还是被标准化掉。
+\end{enumerate}
+
+\section{近期后续步骤}
+
+一个实用的工作顺序是:
+\begin{enumerate}
+    \item 实现 (17)--(32) 中的玩具 DGP;
+    \item 对普通秩数值验证式 (25),对 oracle 权重数值验证式 (27);
+    \item 实现作为 oracle 基准的加权分割共形;
+    \item 实现加权 CV 秩统计量 (13);
+    \item 比较对比、最大、公共参照马氏与来源标准化得分;
+    \item 在任何治疗效应模拟之前先运行原假设校准场景;
+    \item 加入部分均值漂移与 $X$ 相关污染;
+    \item 仅在理解了筛选之后,再将其与重拟合的纵向 EC-AIPW 估计量连接。
+\end{enumerate}
+
+该顺序使项目在科学上保持聚焦:先确立诊断检测什么、以及其秩何时被校准;再研究选择性借用是否改善治疗效应估计。
+
+\paragraph{当前前沿。}
+步骤 1--8 大体完成,非对称双边筛 $+$ 自适应 $\gamma$(第~\ref{sec:basecell} 节)在基准格上胜过仅 RCT。按优先级,开放工作为:(i) 从根源治理第~\ref{sec:basecell} 节的选择偏差——用\emph{软/连续}借用力度(天生无偏,且不同于按层截断纠偏,可迁移到一般协变量);(ii) 在漂移形态 B/C/D 与 $\pi_B\in\{0.15,0.3,0.5\}$ 上对胜出的筛子做压力测试,划出它胜过仅 RCT 的场景边界;(iii) 把 DGP 往 \citet{zhou2025causal} 那样的协变量驱动(plasmode)设计推进,验证方法不依赖二值 $X$ 的分层结构。
+
+\newpage
+\bibliographystyle{plainnat}
+\begin{thebibliography}{99}
+
+\bibitem[Barber et~al.(2021)Barber, Cand\`es, Ramdas, and Tibshirani]{barber2021jackknife}
+Barber, R.~F., Cand\`es, E.~J., Ramdas, A., and Tibshirani, R.~J. (2021).
+Predictive inference with the jackknife+.
+\emph{The Annals of Statistics}, 49(1), 486--507.
+
+\bibitem[Bates et~al.(2023)Bates, Cand\`es, Lei, Romano, and Sesia]{bates2023outliers}
+Bates, S., Cand\`es, E., Lei, L., Romano, Y., and Sesia, M. (2023).
+Testing for outliers with conformal p-values.
+\emph{The Annals of Statistics}, 51(1), 149--178.
+
+\bibitem[Crump et~al.(2009)Crump, Hotz, Imbens, and Mitnik]{crump2009}
+Crump, R.~K., Hotz, V.~J., Imbens, G.~W., and Mitnik, O.~A. (2009).
+Dealing with limited overlap in estimation of average treatment effects.
+\emph{Biometrika}, 96(1), 187--199.
+
+\bibitem[Hainmueller(2012)]{hainmueller2012}
+Hainmueller, J. (2012).
+Entropy balancing for causal effects: A multivariate reweighting method to produce balanced samples in observational studies.
+\emph{Political Analysis}, 20(1), 25--46.
+
+\bibitem[Jin and Cand\`es(2026)]{jin2026weighted}
+Jin, Y. and Cand\`es, E.~J. (2026).
+Model-free selective inference under covariate shift via weighted conformal p-values.
+\emph{Biometrika}, advance publication. Earlier version: arXiv:2307.09291.
+
+\bibitem[Lei et~al.(2018)Lei, G'Sell, Rinaldo, Tibshirani, and Wasserman]{lei2018}
+Lei, J., G'Sell, M., Rinaldo, A., Tibshirani, R.~J., and Wasserman, L. (2018).
+Distribution-free predictive inference for regression.
+\emph{Journal of the American Statistical Association}, 113(523), 1094--1111.
+
+\bibitem[Rosenbaum and Rubin(1983)]{rosenbaum1983}
+Rosenbaum, P.~R. and Rubin, D.~B. (1983).
+The central role of the propensity score in observational studies for causal effects.
+\emph{Biometrika}, 70(1), 41--55.
+
+\bibitem[Tibshirani et~al.(2019)Tibshirani, Barber, Cand\`es, and Ramdas]{tibshirani2019weighted}
+Tibshirani, R.~J., Barber, R.~F., Cand\`es, E.~J., and Ramdas, A. (2019).
+Conformal prediction under covariate shift.
+In \emph{Advances in Neural Information Processing Systems 32}.
+
+\bibitem[Zhou et~al.(2025)Zhou, Zhu, Drake, and Pang]{zhou2025causal}
+Zhou, X., Zhu, J., Drake, C., and Pang, H. (2025).
+Causal estimators for incorporating external controls in randomized trials with longitudinal outcomes.
+\emph{Journal of the Royal Statistical Society: Series A}, 188(3), 791--817.
+
+\bibitem[Zhu et~al.(2025)Zhu, Yang, and Wang]{zhu2025csb}
+Zhu, K., Yang, S., and Wang, X. (2025).
+Enhancing statistical validity and power in hybrid controlled trials: A randomization inference approach with conformal selective borrowing.
+In \emph{Proceedings of the 42nd International Conference on Machine Learning}, PMLR 267. arXiv:2410.11713.
+
+\end{thebibliography}
+
+\end{document}

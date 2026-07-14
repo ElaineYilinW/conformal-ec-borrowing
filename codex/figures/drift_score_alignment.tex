@@ -1,0 +1,20 @@
+\begin{tikzpicture}[font=\small, x=1cm, y=1cm]
+  \node[titlelabel,anchor=west] at (0,2.85) {Different longitudinal discrepancies require different eyes};
+  \node[smalllabel,anchor=west] at (0,2.53) {Gray is the compatible course; orange is the incompatible drift.};
+
+  \foreach \x/\lab in {1.25/A: global,4.15/B: late,7.05/C: slope,9.95/D: $X$-specific} {
+    \node[smalllabel,font=\scriptsize\bfseries] at (\x,2.12) {\lab};
+    \draw[->,draw=midgray] (\x-1.0,.70)--(\x-1.0,1.88);
+    \draw[->,draw=midgray] (\x-1.0,.70)--(\x+1.0,.70);
+    \draw[draw=rctgray,line width=1pt] plot[smooth] coordinates {(\x-.85,.85)(\x-.3,1.04)(\x+.3,1.23)(\x+.85,1.42)};
+  }
+  \draw[draw=amber,line width=1.25pt] plot[smooth] coordinates {(.40,1.25)(.95,1.44)(1.55,1.63)(2.10,1.82)};
+  \draw[draw=amber,line width=1.25pt] plot[smooth] coordinates {(3.30,.85)(3.85,1.04)(4.45,1.23)(5.00,1.80)};
+  \draw[draw=amber,line width=1.25pt] plot[smooth] coordinates {(6.20,.85)(6.75,1.18)(7.35,1.50)(7.90,1.82)};
+  \draw[draw=amber,line width=1.25pt,dashed] plot[smooth] coordinates {(9.10,.85)(9.65,1.18)(10.25,1.50)(10.80,1.82)};
+
+  \node[badbox,text width=2.05cm] at (1.25,-0.15) {$c_2$: strong\\$c_1$: blind};
+  \node[warnbox,text width=2.05cm] at (4.15,-0.15) {$c_2$: weaker\\$c_1$: strong};
+  \node[warnbox,text width=2.05cm] at (7.05,-0.15) {$c_2$: partial\\$c_1$: strong};
+  \node[warnbox,text width=2.05cm] at (9.95,-0.15) {needs $X$-aware\\modeling + weighting};
+\end{tikzpicture}

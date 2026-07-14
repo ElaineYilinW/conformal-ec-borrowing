@@ -1,0 +1,17 @@
+\begin{tikzpicture}[font=\small, x=1cm, y=1cm]
+  \node[titlelabel,anchor=west] at (0,3.05) {Two different reasons not to borrow};
+  \node[smalllabel,anchor=west] at (0,2.70) {A candidate must pass both gates; passing one does not imply passing the other.};
+
+  \node[extbox,text width=1.55cm] (ec) at (1.0,1.15) {candidate EC};
+  \node[stage,text width=2.15cm] (g1) at (3.85,1.15) {Gate 1\\baseline overlap\\\scriptsize Is $X$ represented?};
+  \node[stage,text width=2.35cm] (g2) at (7.15,1.15) {Gate 2\\outcome compatibility\\\scriptsize Is $Y\mid X$ ordinary under $V$?};
+  \node[keepbox,text width=1.75cm] (yes) at (10.65,1.15) {eligible to borrow};
+  \node[badbox,text width=2.15cm] (no1) at (3.85,-1.00) {outside common support};
+  \node[badbox,text width=2.25cm] (no2) at (7.15,-1.00) {extreme residual rank};
+
+  \draw[flow] (ec)--(g1);
+  \draw[flow] (g1)--node[above,smalllabel]{pass}(g2);
+  \draw[flow] (g2)--node[above,smalllabel]{pass}(yes);
+  \draw[flow,draw=red] (g1)--(no1);
+  \draw[flow,draw=red] (g2)--(no2);
+\end{tikzpicture}
