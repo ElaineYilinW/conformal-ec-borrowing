@@ -1,0 +1,38 @@
+\documentclass[border=6pt]{standalone}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{bm}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\definecolor{cblue}{HTML}{2F7DC8}
+\definecolor{cgreen}{HTML}{4E8E2A}
+\definecolor{cink}{HTML}{2B2B2B}
+\newcommand{\Exp}{\mathbb{E}}
+\tikzset{>={Stealth[length=2.2mm]},
+  band/.style={rounded corners=4pt,draw=cblue!70,line width=0.7pt},
+  clab/.style={font=\footnotesize,text=cink,align=left},
+}
+\begin{document}
+\begin{tikzpicture}[font=\small]
+  % concentric bands: outer = weakest assumption, inner = strongest
+  \draw[band,fill=cblue!6]  (0,0)     rectangle (11.4,6.4);
+  \draw[band,fill=cblue!12] (0.55,0.5) rectangle (10.85,5.2);
+  \draw[band,fill=cblue!22] (1.1,1.0)  rectangle (10.3,4.05);
+  \draw[band,fill=cblue!34] (1.65,1.5) rectangle (9.75,3.0);
+
+  \node[clab,anchor=north west] at (0.15,6.32) {\textbf{1. Covariate overlap} --- external $X$ lies in the RCT's support};
+  \node[clab,anchor=north west] at (0.7,5.12)  {\textbf{2. One-contrast mean} --- $\Exp[c^{\top}\bm Y\mid X]$ equal \ \textit{(all the estimand needs)}};
+  \node[clab,anchor=north west] at (1.25,3.97) {\textbf{3. Full mean vector} --- $\Exp[\bm Y\mid X]$ equal at every visit};
+  \node[clab,anchor=north west,text=white] at (1.8,2.92) {\textbf{4. Full conditional law} --- $\bm Y\mid X$ identical in distribution};
+
+  % strength arrow
+  \draw[->,cink!70,line width=1.0pt] (12.0,0.3) -- (12.0,6.1)
+        node[midway,rotate=90,anchor=south,font=\footnotesize\itshape,text=cink!75,yshift=1mm]{stronger assumption (each implies the ones outside)};
+
+  % what the screen checks
+  \node[clab,text=cgreen!60!black,align=center,anchor=north] at (5.7,-0.35)
+     {\textbf{a residual-rank screen checks the \emph{score} distribution} --- as strong as level 2 or 3 depending on the score, \emph{never} the full law 4};
+\end{tikzpicture}
+\end{document}

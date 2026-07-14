@@ -22,8 +22,20 @@ A randomized trial has few controls; a registry or historical arm offers many ex
 
 The idea is \emph{selective} borrowing: keep the compatible ECs, drop the rest, and do so from the outcomes themselves rather than a propensity heuristic. For each EC we compute a longitudinal residual score, rank it among the randomized-control scores (a conformal $p$-value), and keep those that look like ordinary randomized controls. Two extensions beyond ordinary conformal selective borrowing are essential here and are our methodological contribution: \emph{covariate-shift weighting} of the rank (randomized and external covariate distributions differ), and an \emph{estimand-aware longitudinal} score integrated with a refitted external-control AIPW.
 
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{fig_design.pdf}
+\caption{The setup. A small randomized trial compares a treated and a control arm; a large external source offers extra controls, but a hidden subset is incompatible and the two sources differ in baseline case-mix (covariate shift). We screen each external control by how it ranks against the randomized controls, borrow the compatible ones into the control comparison, and drop the rest---sharpening $\widehat\tau$ only with controls that are truly exchangeable.}
+\label{fig:design}
+\end{figure}
+
 \section{Method}
 Let $S{=}1$ index the trial and $S{=}0$ the external source; within the trial $A{=}1{/}0$ is randomized treatment/control. Screening compares randomized controls ($S{=}1,A{=}0$) to external controls ($S{=}0$). For a subject with baseline covariates $X$ and visit trajectory $\bm Y$, fit a working control-mean model $\widehat m(X)$ on the randomized controls, form the residual $\bm r=\bm Y-\widehat m(X)$, and reduce it to a scalar nonconformity score $V=s(\bm r)$ aligned with the estimand contrast $Z=c^\top\bm Y$ (visit-average, last-minus-baseline, or Mahalanobis).
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{fig_pipeline.pdf}
+\caption{The method in six steps. Steps 1--3 learn what an ordinary randomized control looks like (fit a control-mean model, residualize, reduce to an estimand-aligned score); steps 4--5 rank each external control against the randomized controls---reweighted for covariate shift---and keep only the conforming ones; step 6 refits a transported AIPW on the randomized controls plus the retained external controls.}
+\label{fig:pipeline}
+\end{figure}
 
 \paragraph{The weighted conformal screen.} With $\omega_0(x)=f_{\Ext,0}(x)/f_\R(x)$ the compatible-EC-to-RCT density ratio, the upper-tail weighted $p$-value of an external score $V^{\Ext}_j$ against the randomized-control calibration scores $\{V^\R_i\}$ is
 \[
@@ -39,6 +51,12 @@ and we retain $\{j:\widehat p^{\,w}_j>\gamma\}$. Weighting makes the randomized-
 \item[(ii)] \textbf{CV+ rank calibration.} Cross-fit the score across folds instead of a one-time train/calibrate split, so the entire (scarce) randomized-control sample calibrates the ranks. This is the main efficiency lever (Table~\ref{tab:robust}).
 \item[(iii)] \textbf{Adaptive, de-biased threshold.} Choose $\gamma$ per dataset to minimize a label-free estimated MSE (squared distance to the no-borrow estimate, de-biased by the paired bootstrap variance, plus bootstrap variance), following the CSB principle.
 \end{enumerate}
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.95\linewidth]{fig_trimming.pdf}
+\caption{Why the screen is \emph{symmetric} (design choice~(i)). Trimming both tails of the clean, roughly symmetric score equally leaves the retained mean at $0$, so the borrowed control mean stays unbiased (left). Cutting only the high tail---the one-sided screen that chases directional contamination---truncates the clean upper tail, pulls the retained mean down, and biases $\widehat\tau$ upward (right); its extra ``power'' is that bias, not signal.}
+\label{fig:trimming}
+\end{figure}
 
 \section{Why screen on the score, not the outcome (Figure~\ref{fig:mech})}
 Figure~\ref{fig:mech} shows one simulated draw. On the raw outcome (top) the compatible ECs (blue) overlap the randomized controls (gray) but sit slightly higher \emph{purely because the external mix carries more severe subjects}---covariate shift, not incompatibility---while the contaminated ECs (amber) sit far right; a raw-outcome threshold would confound the two. The nonconformity score (bottom) subtracts the covariate mean, so randomized and compatible controls realign at $0$ and only contamination stands out. The symmetric screen keeps the central band, borrowing the compatible controls and dropping the incompatible ones; trimming both tails equally leaves the retained mean at $0$, hence unbiased.

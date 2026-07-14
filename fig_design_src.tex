@@ -1,0 +1,67 @@
+\documentclass[border=6pt]{standalone}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\definecolor{cgray}{HTML}{6E6C66}
+\definecolor{cblue}{HTML}{2F7DC8}
+\definecolor{camber}{HTML}{E0891E}
+\definecolor{cgreen}{HTML}{5E9A2E}
+\definecolor{cred}{HTML}{B23B3B}
+\definecolor{cink}{HTML}{2B2B2B}
+\begin{document}
+\begin{tikzpicture}[
+  font=\small,
+  >={Stealth[length=2.2mm]},
+  arm/.style={rounded corners=2pt,draw,line width=0.7pt,align=center,
+              minimum width=3.2cm,minimum height=0.95cm,inner sep=3pt},
+  outer/.style={rounded corners=5pt,draw=cink!55,line width=0.9pt},
+  ttl/.style={font=\bfseries\small,text=cink},
+  lbl/.style={font=\footnotesize\itshape,text=cink!70},
+]
+
+% ===== outer containers =====
+\draw[outer,fill=black!2] (-4.8,-2.25) rectangle (2.5,2.35);
+\draw[outer,fill=black!2] (5.2,-2.25) rectangle (10.0,2.35);
+\node[ttl] at (-1.15,2.0) {Randomized trial \ \mdseries\footnotesize(small, valid)};
+\node[ttl] at (7.6,2.0) {External control source \ \mdseries\footnotesize(large)};
+
+% ===== RCT arms =====
+\node[arm,fill=cblue!16,draw=cblue] (trt) at (-1.0,0.85) {Treated arm \ \footnotesize$n_1$};
+\node[arm,fill=cgray!20,draw=cgray] (ctr) at (-1.0,-0.95) {Control arm \ \footnotesize$n_0$ \textbf{(few)}};
+\node[circle,draw=cink,line width=0.7pt,minimum size=6.5mm,inner sep=0pt] (rand) at (-3.9,-0.05) {R};
+\node[lbl,below=0pt of rand] {patients};
+\draw[->] (rand) -- node[lbl,above,sloped]{randomize} (trt.west);
+\draw[->] (rand) -- (ctr.west);
+
+% ===== external dots =====
+\node[cgray,font=\footnotesize\bfseries] at (6.8,1.35) {compatible};
+\node[camber,font=\footnotesize\bfseries] at (8.95,1.35) {incompatible};
+\foreach \x in {6.35,6.75,7.15}\foreach \y in {0.55,0.05,-0.45}\fill[cgray] (\x,\y) circle (2.2pt);
+\foreach \y in {0.55,0.05,-0.45}\fill[cgray] (7.55,\y) circle (2.2pt);
+\foreach \x in {8.55,8.95,9.35}\foreach \y in {0.3,-0.25}\fill[camber] (\x,\y) circle (2.4pt);
+\node[lbl,align=center] at (7.7,-1.85) {a hidden subset is incompatible (shifted control outcome)};
+
+% ===== covariate shift between sources =====
+\draw[<->,cink!55,line width=0.9pt] (2.5,1.15) -- node[lbl,above,align=center,yshift=-0.5mm]{covariate shift}
+      node[lbl,below,align=center,yshift=0.5mm]{different case-mix $X$} (5.2,1.15);
+
+% ===== screen gate =====
+\node[rounded corners=2pt,draw=cgreen,fill=cgreen!12,line width=0.9pt,align=center,
+      minimum height=1.0cm,inner sep=4pt] (screen) at (4.6,-3.7)
+      {\textbf{Conformal screen}\\[-1pt]\footnotesize rank each EC among the RCT controls};
+\draw[->,camber!85,line width=0.9pt] (7.6,-2.25) to[out=-90,in=0] (screen.east);
+\draw[->,cgreen!70,line width=1.0pt] (screen.west) to[out=180,in=-90]
+      node[lbl,text=cgreen!65,below left,pos=0.62]{keep compatible} (ctr.south);
+\draw[->,cred!80,line width=0.9pt] (screen.south) -- (4.6,-4.55);
+\node[font=\footnotesize,text=cred,anchor=west] at (4.9,-4.55) {$\times$\ \ drop incompatible};
+
+% ===== estimand =====
+\node[rounded corners=2pt,draw=cink!60,fill=black!3,align=center,inner sep=5pt] (est) at (1.0,-5.35)
+   {$\displaystyle \widehat\tau \;=\; \overline{Y}_{\text{treated}} \;-\; \overline{Y}_{\;\text{RCT controls}\,+\,\text{borrowed compatible ECs}}$};
+\node[lbl,below=1pt of est,align=center]
+   {more valid controls $\Rightarrow$ sharper $\widehat\tau$ --- \emph{only} if the borrowed ones are truly compatible};
+
+\end{tikzpicture}
+\end{document}
