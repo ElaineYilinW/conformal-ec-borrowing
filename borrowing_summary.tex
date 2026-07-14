@@ -59,12 +59,12 @@ and we retain $\{j:\widehat p^{\,w}_j>\gamma\}$. Weighting makes the randomized-
 \end{figure}
 
 \section{Why screen on the score, not the outcome (Figure~\ref{fig:mech})}
-Figure~\ref{fig:mech} shows one simulated draw. On the raw outcome (top) the compatible ECs (blue) overlap the randomized controls (gray) but sit slightly higher \emph{purely because the external mix carries more severe subjects}---covariate shift, not incompatibility---while the contaminated ECs (amber) sit far right; a raw-outcome threshold would confound the two. The nonconformity score (bottom) subtracts the covariate mean, so randomized and compatible controls realign at $0$ and only contamination stands out. The symmetric screen keeps the central band, borrowing the compatible controls and dropping the incompatible ones; trimming both tails equally leaves the retained mean at $0$, hence unbiased.
+Figure~\ref{fig:mech} shows one simulated draw at the reference-cell setup ($\Delta{=}8$). On the raw outcome (top) the compatible ECs (blue) overlap the randomized controls (gray) but sit slightly higher \emph{purely because the external mix carries more severe subjects}---covariate shift, not incompatibility---while the contaminated ECs (amber) sit far right; a raw-outcome threshold would confound the two. Ranking each EC's covariate-adjusted score against the randomized controls converts it to a conformal $p$-value (bottom): contaminated ECs pile near $0$ and fall below the threshold $\gamma$ (dropped), while compatible ECs are roughly uniform and kept. The screen truncates this calibrated $p$-value scale at $\gamma$, not the raw outcome; because the underlying score is trimmed symmetrically, the retained control mean stays unbiased.
 
 \begin{figure}[ht]\centering
 \includegraphics[width=.92\linewidth]{fig_outcome.pdf}\\[2pt]
-\includegraphics[width=.92\linewidth]{fig_score.pdf}
-\caption{Outcome (top) vs.\ nonconformity score (bottom) for randomized controls, compatible ECs (borrowed), and non-compatible ECs (dropped). The score removes covariate shift; the symmetric keep band borrows the compatible ECs unbiasedly.}
+\includegraphics[width=.92\linewidth]{fig_pval.pdf}
+\caption{Outcome density (top) and weighted residual-rank conformal $p$-values (bottom) for randomized controls, compatible ECs (borrowed), and non-compatible ECs (dropped); reference-cell setup ($\Delta{=}8$, CV+). The raw outcome confounds covariate shift with contamination; the $p$-value scale separates them---contaminated ECs pile below $\gamma$, compatible ECs spread uniformly---and the screen keeps those with $p>\gamma$.}
 \label{fig:mech}
 \end{figure}
 

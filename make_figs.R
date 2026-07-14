@@ -1,33 +1,57 @@
+# make_figs.R  ->  fig_outcome.pdf , fig_pval.pdf   (Figure 8 of the blueprint)
+# Built on the REFERENCE-CELL / Table-1 setup: DGP1 hetero, n_r0=60, n_ec=200,
+# piB=0.30, Delta=8, correct model, c2 contrast, weighted CV+ calibration.
+# Panel 1: density of the visit-average outcome Z=c2'Y (why the raw outcome confounds
+#          covariate shift with contamination). Panel 2: the weighted residual-rank
+#          conformal p-values and the screen's truncation at gamma.
 source("engine2.R")
-set.seed(11L)
-n_r0<-250L; n_ec<-500L; Delta<-4; piB<-0.30
-dat<-gen_data(1L,2L,n_r0,n_ec,"A",Delta,piB,FALSE)
-Yc<-dat$Yc;Xc<-dat$Xc;Ye<-dat$Ye;Xe<-dat$Xe;B<-dat$B;cc<-C2
-Zr<-as.numeric(Yc%*%cc);Ze<-as.numeric(Ye%*%cc)
-mf<-fit_mean(Yc,Xc,"correct");covR<-cov_stratum(Yc-mf(Xc),Xc)
-scr<-score_vec(Yc-mf(Xc),Xc,covR,"c2");sce<-score_vec(Ye-mf(Xe),Xe,covR,"c2")
-q<-as.numeric(quantile(abs(scr),0.85))
-gray<-"#888780";blue<-"#378ADD";amber<-"#EF9F27";green<-"#97C459"
-tr<-function(c,a=0.32)adjustcolor(c,alpha.f=a)
-fc<-mean(B==0);fk<-mean(B==1)
-dc<-function(v,sc=1){d<-density(v,n=220,adjust=1.1);d$y<-d$y*sc;d}
-root<-""   # write to current working directory (run from repo root)
-lg<-function() legend("topright",bty="n",cex=0.85,legend=c("RCT control","compatible EC  (borrow)","non-compatible EC  (drop)"),fill=c(tr(gray),tr(blue),tr(amber)),border=c(gray,blue,amber))
-# FIG 1 : outcome Y
-pdf(paste0(root,"fig_outcome.pdf"),width=6.6,height=3.0,pointsize=10)
-par(mar=c(3.2,0.8,0.6,0.6),mgp=c(1.9,0.6,0))
-d1<-dc(Zr);d2<-dc(Ze[B==0],fc);d3<-dc(Ze[B==1],fk)
-plot(NA,xlim=range(d1$x,d2$x,d3$x),ylim=c(0,max(d1$y)),xlab="outcome Y  (visit-average control level)",ylab="",yaxt="n",bty="n")
-polygon(d3,col=tr(amber),border=amber,lwd=1.6);polygon(d2,col=tr(blue),border=blue,lwd=1.6);polygon(d1,col=tr(gray),border=gray,lwd=1.6);lg()
+set.seed(20260713L)
+n_r1 <- 120L; n_r0 <- 60L; n_ec <- 200L; piB <- 0.30; Delta <- 8
+dat <- gen_data(1L, n_r1, n_r0, n_ec, "A", Delta, piB, FALSE)   # controls only (effect not used by the screen)
+Yc <- dat$Yc; Xc <- dat$Xc; Ye <- dat$Ye; Xe <- dat$Xe; B <- dat$B; cc <- C2
+Zr <- as.numeric(Yc %*% cc); Ze <- as.numeric(Ye %*% cc)
+gray <- "#888780"; blue <- "#378ADD"; amber <- "#EF9F27"; red <- "#B23B3B"; green <- "#639922"
+tr <- function(c, a = 0.32) adjustcolor(c, alpha.f = a)
+fc <- mean(B == 0); fk <- mean(B == 1)
+dc <- function(v, sc = 1) { d <- density(v, n = 220, adjust = 1.1); d$y <- d$y * sc; d }
+
+# ---- Panel 1: outcome Y density ----
+pdf("fig_outcome.pdf", width = 6.8, height = 3.0, pointsize = 10)
+par(mar = c(3.2, 0.8, 0.6, 0.6), mgp = c(1.9, 0.6, 0))
+d1 <- dc(Zr); d2 <- dc(Ze[B == 0], fc); d3 <- dc(Ze[B == 1], fk)
+plot(NA, xlim = range(d1$x, d2$x, d3$x), ylim = c(0, max(d1$y)),
+     xlab = "outcome  Z = visit-average control level", ylab = "", yaxt = "n", bty = "n")
+polygon(d3, col = tr(amber), border = amber, lwd = 1.6)
+polygon(d2, col = tr(blue),  border = blue,  lwd = 1.6)
+polygon(d1, col = tr(gray),  border = gray,  lwd = 1.6)
+legend("topright", bty = "n", cex = 0.85,
+       legend = c("RCT control", "compatible EC  (borrow)", "non-compatible EC  (drop)"),
+       fill = c(tr(gray), tr(blue), tr(amber)), border = c(gray, blue, amber))
 dev.off()
-# FIG 2 : nonconformity score
-pdf(paste0(root,"fig_score.pdf"),width=6.6,height=3.0,pointsize=10)
-par(mar=c(3.2,0.8,0.6,0.6),mgp=c(1.9,0.6,0))
-d1<-dc(scr);d2<-dc(sce[B==0],fc);d3<-dc(sce[B==1],fk);ym<-max(d1$y)*1.1
-plot(NA,xlim=range(d1$x,d2$x,d3$x),ylim=c(0,ym),xlab="nonconformity score  (standardized residual)",ylab="",yaxt="n",bty="n")
-rect(-q,0,q,ym,col=tr(green,0.16),border=NA);abline(v=c(-q,q),col="#639922",lty=2)
-polygon(d3,col=tr(amber),border=amber,lwd=1.6);polygon(d2,col=tr(blue),border=blue,lwd=1.6);polygon(d1,col=tr(gray),border=gray,lwd=1.6)
-text(0,ym*0.97,"sym-ada keeps this band",col="#3B6D11",cex=0.82)
-text(mean(sce[B==1]),ym*0.42,"drop",col="#A32D2D",cex=0.9);lg()
+
+# ---- Panel 2: weighted residual-rank p-values + truncation at gamma ----
+P  <- tails(1L, dat, "c2", "internal", TRUE, "correct", calib = "cv")
+pv <- P$abs                       # symmetric weighted conformal p-value, one per EC
+gam <- 0.10                       # illustrative screen threshold (adaptive gamma lands ~0.05-0.10)
+br <- seq(0, 1, by = 0.05)
+hc <- hist(pv[B == 0], breaks = br, plot = FALSE)   # compatible
+hi <- hist(pv[B == 1], breaks = br, plot = FALSE)   # incompatible
+ym <- max(hc$counts, hi$counts)
+pdf("fig_pval.pdf", width = 6.8, height = 3.0, pointsize = 10)
+par(mar = c(3.2, 3.0, 0.6, 0.6), mgp = c(1.9, 0.6, 0))
+plot(NA, xlim = c(0, 1), ylim = c(0, ym * 1.12),
+     xlab = expression("weighted residual-rank conformal " * italic(p) * "-value"),
+     ylab = "count of external controls", bty = "l")
+rect(0, 0, gam, ym * 1.12, col = tr(red, 0.08), border = NA)   # drop zone p <= gamma
+for (i in seq_along(hi$counts)) rect(br[i], 0, br[i+1], hi$counts[i], col = tr(amber, 0.55), border = amber)
+for (i in seq_along(hc$counts)) rect(br[i], 0, br[i+1], hc$counts[i], col = tr(blue, 0.40), border = blue)
+abline(v = gam, lty = 2, lwd = 1.6, col = red)
+text(gam, ym * 1.10, expression(gamma), col = red, pos = 4, cex = 1.0)
+text(gam/2, ym * 0.60, "drop", col = red, srt = 90, cex = 0.9)
+text(0.58, ym * 0.85, "keep  (p > gamma)", col = green, cex = 0.95, font = 2)
+legend("right", bty = "n", cex = 0.82, inset = 0.02,
+       legend = c("compatible EC", "non-compatible EC"),
+       fill = c(tr(blue, 0.40), tr(amber, 0.55)), border = c(blue, amber))
 dev.off()
-cat("done q=",round(q,2)," Ymeans",round(mean(Zr),2),round(mean(Ze[B==0]),2),round(mean(Ze[B==1]),2)," Smeans",round(mean(scr),2),round(mean(sce[B==0]),2),round(mean(sce[B==1]),2),"\n")
+cat(sprintf("wrote fig_outcome.pdf, fig_pval.pdf | keep-frac compatible=%.2f, incompat dropped=%.2f (gamma=%.2f)\n",
+            mean(pv[B==0] > gam), mean(pv[B==1] <= gam), gam))

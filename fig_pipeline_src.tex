@@ -36,7 +36,7 @@
 \foreach \s/\n/\c in {s1/1/cgray,s2/2/cgray,s3/3/cgray,s4/4/cblue,s5/5/cblue,s6/6/cgreen}
   \node[num=\c] at (\s.north west) {\n};
 
-\node[note,below=3mm of s4] (n4) {covariate-shift weight\\ $\omega_0(x)=f_{\mathrm{E},0}(x)/f_{\mathrm R}(x)$};
+\node[note,below=3mm of s4] (n4) {covariate-shift weight\\ $\omega_0(x)=f_{\mathrm{E}}(x)/f_{\mathrm R}(x)$};
 \draw[->,cblue!70,line width=0.7pt] (n4.north) -- (s4.south);
 \node[note,below=3mm of s5,text=camber!85] (n5) {drop\\ incompatible ECs};
 \draw[->,camber!75,line width=0.7pt] (n5.north) -- (s5.south);
