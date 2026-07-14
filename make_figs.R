@@ -11,7 +11,7 @@ gray<-"#888780";blue<-"#378ADD";amber<-"#EF9F27";green<-"#97C459"
 tr<-function(c,a=0.32)adjustcolor(c,alpha.f=a)
 fc<-mean(B==0);fk<-mean(B==1)
 dc<-function(v,sc=1){d<-density(v,n=220,adjust=1.1);d$y<-d$y*sc;d}
-root<-"/Users/yilinwang/Desktop/Herb/"
+root<-""   # write to current working directory (run from repo root)
 lg<-function() legend("topright",bty="n",cex=0.85,legend=c("RCT control","compatible EC  (borrow)","non-compatible EC  (drop)"),fill=c(tr(gray),tr(blue),tr(amber)),border=c(gray,blue,amber))
 # FIG 1 : outcome Y
 pdf(paste0(root,"fig_outcome.pdf"),width=6.6,height=3.0,pointsize=10)
