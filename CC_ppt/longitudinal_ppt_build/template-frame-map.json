@@ -1,0 +1,358 @@
+{
+  "outputSlides": [
+    {
+      "outputSlide": 1,
+      "sourceSlide": 1,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 2,
+      "sourceSlide": 2,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 3,
+      "sourceSlide": 3,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 4,
+      "sourceSlide": 4,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 5,
+      "sourceSlide": 5,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 6,
+      "sourceSlide": 6,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 7,
+      "sourceSlide": 7,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 8,
+      "sourceSlide": 8,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 9,
+      "sourceSlide": 9,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 10,
+      "sourceSlide": 10,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 11,
+      "sourceSlide": 11,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 12,
+      "sourceSlide": 12,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 13,
+      "sourceSlide": 13,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 14,
+      "sourceSlide": 14,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 15,
+      "sourceSlide": 15,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 16,
+      "sourceSlide": 16,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 17,
+      "sourceSlide": 17,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 18,
+      "sourceSlide": 18,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 19,
+      "sourceSlide": 19,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 20,
+      "sourceSlide": 20,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 21,
+      "sourceSlide": 21,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 22,
+      "sourceSlide": 22,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 23,
+      "sourceSlide": 23,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 24,
+      "sourceSlide": 24,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 25,
+      "sourceSlide": 25,
+      "narrativeRole": "simulation DGP and analysis model",
+      "reuseMode": "duplicate-slide",
+      "editTargets": [
+        {
+          "sourceElementId": "3",
+          "action": "rewrite"
+        },
+        {
+          "sourceElementId": "5",
+          "action": "rewrite-and-reposition"
+        },
+        {
+          "sourceElementId": "6",
+          "action": "rewrite-and-reposition"
+        },
+        {
+          "sourceElementId": "18",
+          "action": "replace"
+        },
+        {
+          "sourceElementId": "8",
+          "action": "rewrite-and-reposition"
+        },
+        {
+          "sourceElementId": "9",
+          "action": "rewrite-and-reposition"
+        },
+        {
+          "sourceElementId": "19",
+          "action": "replace"
+        },
+        {
+          "sourceElementId": "11",
+          "action": "rewrite-and-reposition"
+        },
+        {
+          "sourceElementId": "20",
+          "action": "replace"
+        },
+        {
+          "sourceElementId": "13",
+          "action": "rewrite-and-reposition"
+        },
+        {
+          "sourceElementId": "14",
+          "action": "rewrite-and-reposition"
+        },
+        {
+          "sourceElementId": "21",
+          "action": "replace"
+        },
+        {
+          "sourceElementId": "16",
+          "action": "rewrite-and-reposition"
+        },
+        {
+          "sourceElementId": "17",
+          "action": "keep"
+        }
+      ]
+    },
+    {
+      "outputSlide": 26,
+      "sourceSlide": 26,
+      "narrativeRole": "simulation evidence: two-sided screen in one representative draw",
+      "reuseMode": "duplicate-slide",
+      "editTargets": [
+        {
+          "sourceElementId": "3",
+          "action": "rewrite"
+        },
+        {
+          "sourceElementId": "9",
+          "action": "replace"
+        },
+        {
+          "sourceElementId": "10",
+          "action": "replace"
+        },
+        {
+          "sourceElementId": "7",
+          "action": "rewrite-and-reposition"
+        },
+        {
+          "sourceElementId": "8",
+          "action": "keep"
+        }
+      ]
+    },
+    {
+      "outputSlide": 27,
+      "sourceSlide": 27,
+      "narrativeRole": "simulation comparison: whole-trajectory score detection",
+      "reuseMode": "duplicate-slide",
+      "editTargets": [
+        {
+          "sourceElementId": "3",
+          "action": "rewrite"
+        },
+        {
+          "sourceElementId": "5",
+          "action": "rewrite-and-reposition"
+        },
+        {
+          "sourceElementId": "8",
+          "action": "replace"
+        },
+        {
+          "sourceElementId": "7",
+          "action": "keep"
+        }
+      ]
+    },
+    {
+      "outputSlide": 28,
+      "sourceSlide": 28,
+      "narrativeRole": "simulation summary table and operating characteristics",
+      "reuseMode": "duplicate-slide",
+      "editTargets": [
+        {
+          "sourceElementId": "3",
+          "action": "rewrite"
+        },
+        {
+          "sourceElementId": "5",
+          "action": "rewrite-and-reposition"
+        },
+        {
+          "sourceElementId": "9",
+          "action": "replace"
+        },
+        {
+          "sourceElementId": "7",
+          "action": "rewrite-and-reposition"
+        },
+        {
+          "sourceElementId": "8",
+          "action": "keep"
+        }
+      ]
+    },
+    {
+      "outputSlide": 29,
+      "sourceSlide": 29,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 30,
+      "sourceSlide": 30,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 31,
+      "sourceSlide": 31,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 32,
+      "sourceSlide": 32,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 33,
+      "sourceSlide": 33,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 34,
+      "sourceSlide": 34,
+      "narrativeRole": "preserve source slide unchanged",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    }
+  ]
+}

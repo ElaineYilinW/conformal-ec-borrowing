@@ -1,0 +1,20 @@
+\documentclass[border=8pt]{standalone}
+\usepackage{amsmath,amssymb,bm,booktabs,array,xcolor}
+\definecolor{deckblue}{HTML}{2F75B5}
+\definecolor{deckred}{HTML}{C74440}
+\begin{document}
+\renewcommand{\arraystretch}{1.30}\large\begin{tabular}{lrrrrrr}
+\toprule
+Method & Detection & Wrong excl. & Bias & RMSE & Type-I & Power\\
+\midrule
+RCT final only & --- & --- & $-0.022$ & $0.331$ & $0.040$ & $0.525$\\
+RCT longitudinal & --- & --- & $-0.024$ & $0.323$ & $0.055$ & $0.555$\\
+Full EC borrowing & --- & --- & $+0.577$ & $0.655$ & $0.460$ & $0.975$\\
+Oracle clean EC & $1.000$ & $0.000$ & $-0.009$ & $0.273$ & $0.085$ & $0.760$\\
+\midrule
+\textbf{Conformal average} & $\bm{0.934}$ & $\bm{0.083}$ & $\bm{+0.016}$ & $\bm{0.285}$ & $\bm{0.055}$ & $\bm{0.715}$\\
+Conformal maximum & $0.907$ & $0.089$ & $+0.037$ & $0.278$ & $0.065$ & $0.750$\\
+Conformal quadratic & $0.933$ & $0.083$ & $+0.019$ & $0.282$ & $0.055$ & $0.720$\\
+\bottomrule
+\end{tabular}
+\end{document}

@@ -23,6 +23,8 @@ mk eq_scoredef '$\displaystyle V=s(\bm Y,X;\widehat\eta)\qquad(\text{a \emph{non
 mk eq_keepband '$\displaystyle \text{keep EC } j\ \Longleftrightarrow\ \gamma<p_j<1-\gamma\qquad(\text{drop when the rank falls in \emph{either} tail --- both too small and too large})$'
 mk eq_exch '$\displaystyle \Pr\!\left(V^{\mathrm{R}}\le v\mid X{=}x\right)=\Pr\!\left(V^{\mathrm{E}}\le v\mid X{=}x\right)\qquad(\text{true for any fixed score, even a misspecified one})$'
 mk eq_scores '$\displaystyle \bm r=\bm Y-\widehat m(X);\qquad V^{\text{contrast}}=\frac{c^{\top}\bm r}{\widehat s(X)},\qquad V^{\max}=\max_t\left|\frac{r_t}{\widehat\sigma_t(X)}\right|,\qquad V^{\text{Mah}}=\bm r^{\top}\widehat\Sigma^{-1}\bm r$'
+mk eq_afunc '$\displaystyle \widehat\mu_0=a^{\top}\overline{\bm Y}_0=\sum_{t=1}^{T}a_t\,\overline{Y}_{0t} \qquad\Longrightarrow\qquad \text{take}\ \ c=a$'
+mk eq_mec_a '$\displaystyle \mathbb{E}\{a^{\top}\bm Y(0)\mid X,S{=}1\}=\mathbb{E}\{a^{\top}\bm Y(0)\mid X,S{=}0\}\qquad(\text{ME-}c\ \text{must be indexed by the \emph{estimator}{}'"'"'s } a)$'
 mk eq_omega '$\displaystyle \omega_0(x)=\frac{f_{\mathrm{E},0}(x)}{f_{\mathrm{R}}(x)}\qquad(\text{compatible-EC to RCT-control density ratio})$'
 mk eq_wpval '$\displaystyle \widehat p_j^{\,w}=\frac{\omega_0(X_j)+\sum_i \omega_0(X_i)\,\mathbb{I}\{V_i^{\mathrm{R}}\ge V_j^{\mathrm{E}}\}}{\omega_0(X_j)+\sum_i \omega_0(X_i)}$'
 mk eq_transport '$\displaystyle \mathbb{E}_{\mathrm{R}}\!\left\{\omega_0(X)\,\mathbb{I}(V\le v)\right\}=\Pr_{\mathrm{E},0}(V\le v)\qquad(\text{weighted RCT scores represent the compatible-EC score law})$'

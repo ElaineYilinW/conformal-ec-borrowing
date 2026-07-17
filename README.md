@@ -8,7 +8,7 @@ Each EC is ranked by the **rank of its longitudinal residual nonconformity score
 the randomized controls — **weighted** to absorb baseline covariate shift — and only the
 conforming ECs are borrowed through a transported AIPW. The default method is **sym-ada**:
 a *symmetric* two-sided adaptive screen with *CV+* rank calibration and an
-*estimand-matched* score.
+*estimator-matched* score.
 
 ## Repository layout
 
@@ -127,5 +127,5 @@ cd CC_ppt && python3 build_ppt.py                               # rebuild the de
 
 The engine is a faithful reimplementation cross-checked against **intFRT** (Zhu et al.,
 Conformal Selective Borrowing) and **rdborrow** (Zhou et al., JRSS-A 2025), extended with
-covariate-shift weighting and longitudinal estimand-matched scores. Local copies live under
+covariate-shift weighting and longitudinal estimator-matched scores. Local copies live under
 `reference/` and are not redistributed here.

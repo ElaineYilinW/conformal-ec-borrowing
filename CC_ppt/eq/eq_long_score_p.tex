@@ -1,0 +1,7 @@
+\documentclass[border=8pt]{standalone}
+\usepackage{amsmath,amssymb,bm,booktabs,array,xcolor}
+\definecolor{deckblue}{HTML}{2F75B5}
+\definecolor{deckred}{HTML}{C74440}
+\begin{document}
+$\displaystyle \begin{aligned}\bm r_i^{(-k)}&=\bm Y_i-\widehat{\bm m}^{(-k)}(Z_i),& V_i^{\mathrm{avg}}&=\frac{\color{deckred}{\left|\bm1^{\!\top}\bm r_i/12\right|}}{\sqrt{c^{\top}\widehat\Sigma_Rc}},\quad c=\bm1/12,\\[4pt] \widehat p_j^{,w}&=\frac{\omega(Z_j)+\sum_i\omega(Z_i)\mathbb I\{V_i\ge V_j\}}{\omega(Z_j)+\sum_i\omega(Z_i)},& \text{retain }j&\Longleftrightarrow \widehat p_j^{,w}>\gamma=0.10.\qquad\color{deckblue}{\textbf{Two-sided: }V\text{ uses }|\cdot|.}\end{aligned}$
+\end{document}

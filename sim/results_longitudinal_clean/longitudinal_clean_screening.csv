@@ -1,0 +1,4 @@
+"score","detection","wrong_detection","retained_clean","retained_bad","retained_bad_fraction","mean_p_clean","mean_p_bad","spec"
+"avg",NA,0.08465,91.535,0,0,0.508607911751156,NA,"CC"
+"max",NA,0.08525,91.475,0,0,0.505992338003678,NA,"CC"
+"quad",NA,0.08315,91.685,0,0,0.509646136046462,NA,"CC"

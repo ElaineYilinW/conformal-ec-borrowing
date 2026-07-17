@@ -1,0 +1,10 @@
+"criterion","value","target","pass"
+"all_replications_valid",200,"200/200",TRUE
+"bootstrap_valid_fraction",1,">=0.99",TRUE
+"bad_EC_detection",0.933997189323841,">=0.90",TRUE
+"clean_EC_wrong_detection",0.0834086687041976,"<=0.10",TRUE
+"absolute_bias",0.0157498603656311,"<=0.05 and within 2 MCSE",TRUE
+"RMSE_below_RCT_long",0.880910622481953,"<1",TRUE
+"coverage_compatible_95pct",0.945,"within 2 MCSE of 0.95",TRUE
+"type1_compatible_5pct",0.055,"within 2 MCSE of 0.05",TRUE
+"power_above_RCT_long",0.16,">0",TRUE

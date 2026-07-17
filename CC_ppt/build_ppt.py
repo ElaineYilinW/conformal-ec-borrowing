@@ -190,7 +190,7 @@ bullets(s,[
 img(s, E("eq_overlap"), 0.65, 2.95, 6.9, 0.6, halign="left", bg=True)
 bullets(s,[
  ("h","Compatibility of the control outcome law (nested, weakest → strongest)"),
- ("s","ME-c: the mean of the ONE estimand contrast is equal — all that IDENTIFICATION needs."),
+ ("s","ME-c: the mean of ONE contrast is equal — and c is the contrast the ESTIMATOR uses. All that IDENTIFICATION needs."),
  ("s","VME: the full mean vector is equal at every visit."),
  ("s","DE: the full conditional distribution is equal (what ordinary conformal validity nominally asks)."),
 ], 0.55,3.8,7.1,2.4, size=13.5)
@@ -224,7 +224,7 @@ bullets(s,[
  "So it controls borrowing bias for the estimand without asserting the (essentially unfalsifiable) full-law equality: it sits between what identification NEEDS (ME-c) and the too-strong DE.",
  ("h","The score decides what you can see"),
  "WHICH score you rank on determines which departures the screen detects: a score aligned to the drift is powerful, a score blind to it has no power (we define and choose the score in Part II).",
- ("n","Design target: choose the score so that “looks compatible on the score” implies “compatible for your estimand (ME-c).”",INK,True),
+ ("n","Design target: choose the score so that “looks compatible on the score” implies “compatible for the functional your ESTIMATOR uses” — i.e. ME-c indexed by the estimator's a.",INK,True),
 ], 0.55,1.55,12.3,5.4, size=14.5)
 page(s)
 
@@ -293,7 +293,7 @@ page(s)
 s=newslide(); title(s,"The full method: six steps","Proposed full method")
 img(s, F("fig_pipeline"), 0.5, 1.5, 12.3, 3.0)
 bullets(s,[
- ("n","LEARN what a normal control looks like:  (1) fit a control-mean model on RCT controls,  (2) residualize,  (3) reduce to an estimand-aligned score.",BODY,False),
+ ("n","LEARN what a normal control looks like:  (1) fit a control-mean model on RCT controls,  (2) residualize,  (3) reduce to an estimator-aligned score.",BODY,False),
  ("n","FLAG the abnormal ECs:  (4) rank each EC against the RCT controls with covariate-shift weighting,  (5) screen with a symmetric, adaptive threshold.",BODY,False),
  ("n","BORROW the rest:  (6) refit a transported AIPW on RCT controls + retained ECs  →  τ̂ with a confidence interval.",INK,True),
 ], 0.7,4.75,12.0,2.2, size=14.5)
@@ -321,12 +321,48 @@ bullets(s,[
 ], 0.55,1.5,12.2,1.0, size=15)
 img(s, E("eq_scores"), 0.7, 2.4, 11.6, 0.85, halign="left", bg=True)
 bullets(s,[
- ("n","Contrast score (aligned to the estimand c): most powerful when the drift is along c — global shifts, level changes.",BODY,False),
+ ("n","Contrast score (c = the contrast through which the trajectory enters the estimator): most powerful when the drift is along c — global shifts, level changes.",BODY,False),
  ("n","Max standardized residual: sensitive to a spike at any single visit.",BODY,False),
  ("n","Common-reference Mahalanobis: aggregates the whole trajectory shape — best for ramps / curvature / transient dips.",BODY,False),
  ("h","Design principle"),
- ("n","Choose the score to match the ANTICIPATED drift shape. A contrast blind to the drift will not detect it (we show this in simulation).",INK,True),
+ ("n","Match the score to (1) the functional the ESTIMATOR actually uses, and then (2) the ANTICIPATED drift shape. A contrast blind to the drift will not detect it.",INK,True),
+ ("n","Point (1) is not the same as “match the estimand” — that is the next two slides.",MUT,False),
 ], 0.55,3.55,12.3,3.4, size=15)
+page(s)
+
+# --- choosing c: the estimand does not determine the score (part 1)
+s=newslide(); title(s,"Choosing c: the estimand does not fix the score","Proposed full method")
+bullets(s,[
+ ("h","Two things determine c — not one"),
+ ("n","(1) What the ESTIMAND of interest is.  (2) How much LONGITUDINAL INFORMATION we wish to borrow in estimating it. The second is routinely left implicit — and it is the one that actually decides c.",BODY,False),
+ ("h","A last-visit ATE does NOT automatically give c = (−1,0,0,1)"),
+ ("s","If NO longitudinal structure is imposed and the last-visit outcomes are fully observed: the most direct estimator uses only the final outcomes. The earlier visits do not participate in estimating the last-visit mean → the score may target the final visit alone."),
+ ("s","If longitudinal structure IS imposed — to improve the efficiency of the last-visit ATE — then the earlier visits directly affect the final estimate → the score must reflect whole-trajectory information."),
+ ("h","Three ways the earlier visits get in"),
+ ("s","Repeated-measures GLS: if some covariate effects are assumed constant across visits, all visits are used jointly to estimate those shared parameters — which in turn determine the last-visit mean."),
+ ("s","MMRM under missingness: the earlier repeated measurements help learn the longitudinal association, then used to predict or recover missing final outcomes."),
+ ("s","Assumed shared trajectory (e.g. the mean is linear in t): all visits jointly estimate the trajectory parameters, and the last-visit mean is a function of them."),
+], 0.55,1.45,12.3,5.5, size=13)
+page(s)
+
+# --- choosing c (part 2): the operative question and the rule
+s=newslide(); title(s,"The operative question — and the rule it implies","Proposed full method")
+bullets(s,[
+ ("h","Agreement at the final visit is not sufficient"),
+ ("n","Even if the randomized and external controls have EXACTLY the same mean at the last visit, differences at intermediate visits can still corrupt the longitudinal structure used to estimate the last-visit ATE — and thereby the estimator. Checking the first-to-last contrast alone would never see it.",BODY,False),
+ ("h","So the real question is not “are the last visits the same?”"),
+ ("n","It is: DO THE INTERMEDIATE VISITS ENTER AND INFLUENCE THE ESTIMATION OF THE LAST-VISIT ATE? If we choose to exploit them for efficiency, they are part of the estimator — and must therefore be part of the compatibility assessment. Only if we do not use them at all is whole-trajectory compatibility unnecessary.",INK,True),
+], 0.55,1.45,12.3,2.6, size=13)
+bullets(s,[
+ ("h","The rule: when the estimator touches the control trajectories through a′Ȳ₀ —"),
+], 0.55,4.15,12.3,0.4, size=13)
+img(s, E("eq_afunc"), 0.7, 4.58, 7.6, 0.78, halign="left", bg=True)
+bullets(s,[
+ ("s","final-outcomes-only:  a = (0,0,0,1)  →  c collapses onto the last visit"),
+ ("s","assumed linear trajectory:  the fitted last-visit mean is α̂ + β̂ × (last visit time), and α̂, β̂ are linear in ALL visit means → a spans them"),
+ ("s","GLS / MMRM:  a is induced by the working covariance and the shared-parameter constraints → generically nonzero at every visit"),
+ ("n","Consequence: compatibility is a property of the (estimand, ESTIMATOR) pair — not of the estimand alone.",GREEN,True),
+], 0.55,5.35,12.3,1.8, size=12.5)
 page(s)
 
 # --- Step 4-5 weighting
@@ -477,10 +513,10 @@ page(s)
 s=newslide(); title(s,"Two design questions the theory raises","Discussion")
 bullets(s,[
  ("h","1) Which nonconformity score?"),
- "Align the score to the anticipated drift: the estimand-contrast score for global / level shifts; the Mahalanobis (trajectory-shape) score for ramps, curvature, or transient dips; the max score for a single-visit spike.",
- "A score blind to the drift has no power — e.g. a visit-average contrast cannot see a shape change that averages out. Pick by the expected departure, and pre-specify it.",
- "Detection is not identification: a richer (VME-level) score catches more kinds of drift but can over-exclude compatible ECs; the estimand itself needs only ME-c.",
-], 0.55,1.55,12.3,2.9, size=14.5)
+ "FIRST the estimator, then the drift. c is fixed by the functional the estimator uses — not by the estimand label. A last-visit ATE gives c=(−1,0,0,1) only if the estimator ignores the earlier visits; impose longitudinal structure for efficiency (GLS / MMRM / shared trajectory) and c must span the visits.",
+ "Then align to the anticipated drift: contrast score for global / level shifts; Mahalanobis (trajectory-shape) for ramps, curvature, transient dips; max for a single-visit spike. A score blind to the drift has no power — pick by the expected departure, and pre-specify it.",
+ "Detection is not identification: a richer (VME-level) score catches more kinds of drift but can over-exclude compatible ECs; the estimand needs only ME-c — indexed by the estimator's a, not by the estimand's contrast.",
+], 0.55,1.55,12.3,2.9, size=13.5)
 bullets(s,[
  ("h","2) The assumption hierarchy — what is actually sufficient"),
  "Identifying the effect needs only ME-c (the one-contrast conditional mean); VME and DE are strictly stronger and are NOT required.",
@@ -510,7 +546,7 @@ bullets(s,[
  ("h","Three design choices that make it work"),
  ("s","Symmetric trimming → the borrowed control mean stays unbiased."),
  ("s","CV+ rank calibration → does not waste the scarce randomized controls (the efficiency lever)."),
- ("s","Estimand-matched score → detects the drift that actually matters."),
+ ("s","Estimator-matched score (c = the estimator's a) → detects the drift that actually matters."),
  ("h","Why rank, not a raw residual"),
  ("n","Rank calibration is distribution-free and robust to model misspecification — the core reason. Result: safe, valid, robust borrowing that beats RCT-only and approaches the oracle.",INK,True),
 ], 0.55,1.5,12.3,5.6, size=14.5)

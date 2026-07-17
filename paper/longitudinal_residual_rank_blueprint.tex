@@ -67,7 +67,7 @@ A suitable provisional title is:
 \textbf{Covariate-shift-adjusted longitudinal residual-rank screening for selective borrowing of external controls.}
 \end{quote}
 
-This is a working positioning, not yet a finalized novelty claim. Ordinary residual-rank selective borrowing has already been developed by \citet{zhu2025csb}; weighted conformal calibration under covariate shift has also been developed in the conformal literature \citep{tibshirani2019weighted,jin2026weighted}. The likely contribution is their longitudinal, estimand-aware integration in the external-control setting, together with a careful study of which compatibility notion the screen does and does not diagnose.
+This is a working positioning, not yet a finalized novelty claim. Ordinary residual-rank selective borrowing has already been developed by \citet{zhu2025csb}; weighted conformal calibration under covariate shift has also been developed in the conformal literature \citep{tibshirani2019weighted,jin2026weighted}. The likely contribution is their longitudinal, estimator-aware integration in the external-control setting, together with a careful study of which compatibility notion the screen does and does not diagnose.
 
 \section{Scientific motivation}
 
@@ -101,7 +101,7 @@ First, they describe the temporal pattern of response. Two control sources can a
 
 \begin{figure}[ht]\centering
 \includegraphics[width=\linewidth]{fig_long.pdf}
-\caption{Why the screen must be longitudinal, and why the nonconformity score must match the drift. The shaded band is the range of randomized controls (the natural progression); \emph{most} external controls are compatible (blue) and track it, while a \emph{few} are incompatible (amber) and drift away in different shapes. \emph{Left:} late deterioration---identical early, diverging only at later visits, so a single early visit misses it while the visit-average and slope contrasts catch it. \emph{Middle:} a global level shift---seen by the baseline and visit-average contrasts but not the slope. \emph{Right:} a transient dip that recovers---invisible to the baseline, the endpoint, and (on net) the visit-average, caught only by a trajectory-shape (Mahalanobis) score. No single scalar endpoint reveals all three: the score must be aligned to the estimand and the anticipated drift shape.}
+\caption{Why the screen must be longitudinal, and why the nonconformity score must match the drift. The shaded band is the range of randomized controls (the natural progression); \emph{most} external controls are compatible (blue) and track it, while a \emph{few} are incompatible (amber) and drift away in different shapes. \emph{Left:} late deterioration---identical early, diverging only at later visits, so a single early visit misses it while the visit-average and slope contrasts catch it. \emph{Middle:} a global level shift---seen by the baseline and visit-average contrasts but not the slope. \emph{Right:} a transient dip that recovers---invisible to the baseline, the endpoint, and (on net) the visit-average, caught only by a trajectory-shape (Mahalanobis) score. No single scalar endpoint reveals all three: the score must be aligned to the functional through which the trajectory enters the estimator, and to the anticipated drift shape.}
 \label{fig:long}
 \end{figure}
 
@@ -354,11 +354,11 @@ The central distinction is:
 
 \section{Proposed full method}
 
-The full method has six moves, summarized in Figure~\ref{fig:pipeline}: using the randomized controls, fit a working control-mean model, residualize, and reduce each trajectory to an estimand-aligned nonconformity score; then rank each external control against the randomized controls with covariate-shift weighting, screen conservatively, and refit a transported borrowing estimator on the survivors. The subsections below develop each step in turn.
+The full method has six moves, summarized in Figure~\ref{fig:pipeline}: using the randomized controls, fit a working control-mean model, residualize, and reduce each trajectory to an estimator-aligned nonconformity score; then rank each external control against the randomized controls with covariate-shift weighting, screen conservatively, and refit a transported borrowing estimator on the survivors. The subsections below develop each step in turn.
 
 \begin{figure}[ht]\centering
 \includegraphics[width=\linewidth]{fig_pipeline.pdf}
-\caption{The proposed method in six steps. Steps 1--3 (\emph{learn}) fit a control-mean model on the randomized controls, residualize every control trajectory, and reduce it to an estimand-aligned score. Steps 4--5 (\emph{flag}) rank each external control's score against the randomized-control scores---reweighted by the covariate-shift density ratio $\omega_0$---and keep only those with a large conformal $p$-value under a symmetric, adaptive threshold. Step 6 (\emph{borrow}) refits a transported AIPW on the randomized controls plus the retained external controls, yielding $\widehat\tau$ and a confidence interval.}
+\caption{The proposed method in six steps. Steps 1--3 (\emph{learn}) fit a control-mean model on the randomized controls, residualize every control trajectory, and reduce it to an estimator-aligned score. Steps 4--5 (\emph{flag}) rank each external control's score against the randomized-control scores---reweighted by the covariate-shift density ratio $\omega_0$---and keep only those with a large conformal $p$-value under a symmetric, adaptive threshold. Step 6 (\emph{borrow}) refits a transported AIPW on the randomized controls plus the retained external controls, yielding $\widehat\tau$ and a confidence interval.}
 \label{fig:pipeline}
 \end{figure}
 
@@ -386,9 +386,50 @@ Optionally fit a working internal scale or covariance model $\widehat\Sigma_{\R}
 
 \subsection{Step 3: define the longitudinal nonconformity score}
 
-Several scores answer different scientific questions.
+\paragraph{Two considerations determine $c$, not one.}
+In constructing the nonconformity score, the choice of the vector $c$ depends on two things. First, what the estimand of interest is. Second, \emph{how much longitudinal information we wish to borrow in estimating that estimand}. These are distinct questions, and the second is the one routinely left implicit.
 
-\paragraph{Estimand-aligned contrast score.}
+\paragraph{A last-visit ATE does not automatically give the first-to-last contrast.}
+Suppose the target is the last-visit ATE. This does not automatically mean that we should take $c=(-1,0,0,1)^{\top}$. The choice of $c$ further depends on what role the longitudinal data actually plays in the estimation of the last-visit ATE.
+
+If no longitudinal structure is imposed, and the last-visit outcomes are fully observed, then the most direct estimator uses only the final outcomes. In that case the earlier visits do not participate in the estimation of the last-visit mean, and so the score may legitimately be targeted mainly at the final visit.
+
+\paragraph{Once longitudinal structure is imposed, the earlier visits enter the estimate.}
+If, however, we impose some longitudinal structure in order to improve the efficiency of the last-visit ATE estimate, then the earlier visits directly affect the final estimate, and the nonconformity score must correspondingly reflect whole-trajectory information. For example:
+\begin{itemize}[leftmargin=*,itemsep=2pt,topsep=3pt]
+\item in a repeated-measures GLS, if certain covariate effects are assumed constant across visits, then all visits are used jointly to estimate those shared parameters, and thereby influence the last-visit mean;
+\item in an MMRM under missingness, the earlier repeated measurements help to learn the longitudinal association, which is then used to predict or recover missing final outcomes;
+\item if a shared trajectory is assumed---for instance, that the outcome mean varies linearly in time $t$---then all visits jointly estimate the trajectory parameters, and the last-visit mean is a function of those parameters.
+\end{itemize}
+
+\paragraph{Agreement at the final visit is not sufficient.}
+In these situations, even if the randomized controls and the external controls have \emph{exactly} the same mean at the last visit, differences at the intermediate visits can still corrupt the longitudinal structure used to estimate the last-visit ATE, and thereby affect the final estimator. Here we cannot check only the first-to-last contrast; we need a nonconformity score capable of reflecting whole-trajectory compatibility.
+
+\paragraph{The operative question.}
+In other words, for the last-visit ATE the real question is not merely ``are the last visits the same?'' but rather: \emph{do the intermediate visits enter into, and influence, the estimation of the last-visit ATE?} If we choose to exploit these longitudinal measurements to improve efficiency, then they are part of the estimator, and must therefore be incorporated into the compatibility assessment. Only if we do not exploit them at all is whole-trajectory compatibility unnecessary.
+
+\paragraph{A general rule: align the score with the estimator's functional.}
+This yields an operational rule. Suppose the estimator depends on the control trajectories only through a linear functional of the visit means,
+\[
+\widehat\mu_0=a^{\top}\overline{\bm Y}_0
+=\sum_{t=1}^{T}a_t\,\overline{Y}_{0t},
+\]
+for some weight vector $a$ determined by the estimator, not by the estimand. Then $a$ is precisely the direction in which a control trajectory contributes to $\widehat\tau$, and the score should be built with $c=a$. The three cases above are instances:
+\begin{itemize}[leftmargin=*,itemsep=2pt,topsep=3pt]
+\item \textbf{final-outcomes-only estimator:} $a=e_T=(0,\dots,0,1)^{\top}$, so $c$ collapses onto the final visit and the earlier visits are irrelevant to compatibility;
+\item \textbf{assumed linear trajectory:} the fitted last-visit mean is $\widehat\alpha+\widehat\beta\,t_T$, and $(\widehat\alpha,\widehat\beta)$ are linear in \emph{all} visit means, so $a$ has nonzero weight at every visit;
+\item \textbf{GLS / MMRM:} $a$ is induced by the working covariance and the shared-parameter constraints, and is generically nonzero at every observed visit.
+\end{itemize}
+More generally, when $\widehat\tau$ is a smooth functional of the control distribution rather than a linear one, the relevant direction is the one in which the trajectory enters that functional's influence function; $c=a$ is the linear special case.
+
+\paragraph{Consequence: compatibility is a property of the estimand--estimator pair.}
+This has a direct consequence for the identification assumption itself. The ME-$c$ condition stated earlier,
+$\Exp\{c^{\top}\bm Y(0)\mid X,S=1\}=\Exp\{c^{\top}\bm Y(0)\mid X,S=0\}$,
+is indexed by $c$---and the $c$ that belongs there is the estimator's weight vector $a$, not the estimand's contrast. Two sources can satisfy ME-$c$ for the estimand's contrast and simultaneously violate it for the functional the estimator actually uses, in which case borrowing biases $\widehat\tau$ even though the two sources ``agree on the estimand's contrast.'' Compatibility is therefore not a property of the estimand alone: it is a property of the \emph{(estimand, estimator)} pair. Prespecifying the estimand without prespecifying how the trajectory will be used leaves the compatibility requirement undefined.
+
+With this established, several scores answer different scientific questions.
+
+\paragraph{Estimator-aligned contrast score.}
 For a prespecified contrast $c$,
 \[
 V_i^{(c,-k)}
@@ -400,7 +441,7 @@ V_i^{(c,-k)}
 =c^{\top}\widehat\Sigma_{\R}^{(-k)}(X)c.
 \tag{3}
 \]
-This focuses the screen on trajectory discrepancies aligned with the primary mean contrast.
+This focuses the screen on trajectory discrepancies aligned with the mean contrast through which the trajectory enters $\widehat\tau$. When the estimator uses only the final visit, $c$ collapses onto that visit; when the estimator borrows strength across visits, $c$ must span them.
 
 \paragraph{Maximum standardized residual score.}
 \[
@@ -426,7 +467,7 @@ V_i^{(M,-k)}
 \]
 Using the randomized-control covariance for both sources tests whether an external residual trajectory is unusual relative to randomized controls, including unusual variability or correlation.
 
-No score should be declared universally best. The primary analysis can use an estimand-aligned score, with the maximum or Mahalanobis score as a broader trajectory-level sensitivity analysis.
+No score should be declared universally best. The primary analysis can use an estimator-aligned score---the contrast $c=a$ through which the trajectory actually enters $\widehat\tau$---with the maximum or Mahalanobis score as a broader trajectory-level sensitivity analysis. Note that the menu above is not a free choice made after the fact: once the estimator is fixed, $a$ is fixed with it, and the contrast score is determined up to standardization. The genuine freedom is in \emph{how much longitudinal structure to impose in the first place}, which is a design decision taken jointly with the estimator, before any data are screened. Choosing a final-visit-only estimator buys a weaker compatibility requirement at the cost of efficiency; choosing a GLS or MMRM estimator buys efficiency at the cost of having to defend whole-trajectory compatibility.
 
 \subsection{Step 4: distinguish common-reference and source-specific standardization}
 
@@ -765,7 +806,7 @@ Held fixed across the study: $n_{\R,1}=120$, $n_{\R,0}=60$, $n_{\E}=200$, $X$-in
 
 \emph{Detection and estimand alignment.}
 \begin{enumerate}\setcounter{enumi}{3}
-    \item \textbf{Which score catches which drift, and is detection estimand-aligned?} Detection by score shape $\times$ drift pattern A--D at $\Delta{=}3$ (e.g.\ $c_1$ is blind to the global shift A, which is orthogonal to it; $c_2$ misses shape drift that averages out).
+    \item \textbf{Which score catches which drift, and is detection estimator-aligned?} Detection by score shape $\times$ drift pattern A--D at $\Delta{=}3$ (e.g.\ $c_1$ is blind to the global shift A, which is orthogonal to it; $c_2$ misses shape drift that averages out).
     \item \textbf{Is the detection ceiling estimation noise or intrinsic overlap?} Detection with estimated vs.\ oracle (true mean and variance) nuisances; if it barely moves, the limit is overlap, not estimation.
     \item \textbf{Detection vs.\ signal} --- detection over $\Delta\in\{1,3,5,8\}$ and the severe-stratum signal-to-noise floor.
 \end{enumerate}
@@ -1054,7 +1095,7 @@ The residual vector $\bm r=\bm Y-\widehat m(X)\in\mathbb R^4$ is reduced to a sc
 \begin{itemize}
     \item quadratic $\bm r^{\top}A\bm r$ (unsigned, omnibus two-sided);
     \item maximum $\max_t r_t/a_t$ (signed one-sided, worst visit);
-    \item estimand-aligned contrasts $c_1^{\top}\bm r$ and $c_2^{\top}\bm r$ (signed, one per estimand).
+    \item estimator-aligned contrasts $c_1^{\top}\bm r$ and $c_2^{\top}\bm r$ (signed, one per estimand).
 \end{itemize}
 Three covariance treatments set $A$ and $a_t$:
 \begin{itemize}
@@ -1136,7 +1177,7 @@ Quadratic (Mahalanobis)           & 0.201 & 0.677 & 0.619 & 0.541 \\
 
 \begin{table}[ht]
 \centering
-\caption{Estimation, each cell \emph{bias (coverage)} ($n_{\mathrm{sim}}=400$, percentile CIs from $B=200$ full-pipeline bootstraps; weighted CV+ screen with the estimand-aligned internal-standardized contrast, correct model, $\gamma=0.10$, $\pi_B=0.5$). True effects $\tau_{c_1}=1.000$, $\tau_{c_2}=0.4625$. Null is $\Delta=0$; late drift B and orthogonal-to-$c_1$ shift A are at $\Delta=3$. ``Signed''/``abs'' are the one-sided/two-sided contrast screens.}
+\caption{Estimation, each cell \emph{bias (coverage)} ($n_{\mathrm{sim}}=400$, percentile CIs from $B=200$ full-pipeline bootstraps; weighted CV+ screen with the estimator-aligned internal-standardized contrast, correct model, $\gamma=0.10$, $\pi_B=0.5$). True effects $\tau_{c_1}=1.000$, $\tau_{c_2}=0.4625$. Null is $\Delta=0$; late drift B and orthogonal-to-$c_1$ shift A are at $\Delta=3$. ``Signed''/``abs'' are the one-sided/two-sided contrast screens.}
 \begin{tabular}{llcccc}
 \toprule
 Scenario & Estimand & RCT only & Full EC & Screen (signed) & Screen (abs) \\
@@ -1157,7 +1198,7 @@ Orthogonal A & $c_2$ & $-0.01\,(.93)$ & $-0.50\,(.45)$ & $0.03\,(.94)$ & $-0.11\
 \begin{enumerate}
     \item \textbf{Borrowing is a double-edged sword; screening is insurance.} When ECs are truly compatible, borrowing lowers error below RCT-only; when they are contaminated, naive full borrowing is badly biased with broken coverage. Screening caps that downside and keeps the upside---but it cannot beat contamination it cannot see.
     \item \textbf{Weighting is necessary and works, at a price.} Under covariate shift the unweighted screen wrongly deletes compatible ECs in the over-represented severe stratum; weighting restores calibration. It matters most when the working model is poor (with a good model the score self-standardizes), and it slightly lowers detection, because protecting the severe stratum also shelters contaminated severe ECs.
-    \item \textbf{Match the score to the estimand.} An estimand-aligned contrast flags contamination that biases \emph{that} estimand and correctly ignores drift orthogonal to it; an omnibus whole-trajectory score flags everything, over-excluding ECs that were harmless for the target. With two estimands the same drift biases one but not the other, and the aligned score sees only the relevant one.
+    \item \textbf{Match the score to the estimator's functional, not to the estimand label.} An aligned contrast flags contamination that biases \emph{that} functional and correctly ignores drift orthogonal to it; an omnibus whole-trajectory score flags everything, over-excluding ECs that were harmless for the target. With two estimands the same drift biases one but not the other, and the aligned score sees only the relevant one. Note that the alignment is unambiguous here \emph{only} because the estimator of Section~\ref{sec:refit} touches the trajectory solely through $c^{\top}\bm Y$, so its weight vector $a$ happens to coincide with the estimand's contrast. Step~3 makes the general point: as soon as an estimator borrows strength across visits---GLS with shared covariate effects, MMRM under missingness, or an assumed shared trajectory---$a\neq c$, and drift that is orthogonal to the estimand's contrast is no longer harmless, because it corrupts the longitudinal structure the estimator relies on. ``Orthogonal'' is defined by $a$, not by the estimand.
     \item \textbf{Two configuration lessons.} (a) Do not use the Mahalanobis (quadratic) score with a plug-in covariance---the small-sample inverse breaks calibration; regularize it. (b) Screen orientation is a genuine trade-off. The symmetric two-sided screen (\textbf{sym-ada}) trims both tails equally and so stays unbiased when the retained external controls are clean; the non-symmetric/one-sided screen detects directional contamination harder but truncates the clean high tail and biases the retained mean, with that bias \emph{growing} as borrowing becomes more aggressive (larger $\Delta$ or $n_{\E}$). At a detectable signal-to-noise level ($\Delta{=}8$) sym-ada is the method carried forward: it is the only \emph{attainable} screen that beats RCT-only on all four criteria at once---bias ($0.00$), RMSE ($0.18$ vs.\ $0.20$), type-I ($0.06$), power ($0.73$ vs.\ $0.64$)---whereas the non-symmetric screens buy more raw power only by paying bias and inflated type-I ($+0.05$/$0.08$ for nonsym-ada, $+0.31$/$0.31$ for nonsym-fix; Table~\ref{tab:refcell}), so their apparent gain is not valid inference. Because sym-ada is unbiased, extra external controls actually tighten it; the residual gap to the oracle ($0.17$/$0.75$) is a detection/borrowing-budget gap, closed by higher SNR or the bias-neutral soft-borrowing of Section~\ref{sec:openproblems}, not by more data.
     \item \textbf{The binding limit is signal-to-noise, not the algorithm.} Whether contamination is detectable is governed by the drift size relative to residual variability; small drift---especially in the high-variance severe stratum---is undetectable at any threshold and leaves residual bias. The method therefore targets the \emph{identifiable} contamination subset and should not be claimed to catch all incompatibility.
 \end{enumerate}
